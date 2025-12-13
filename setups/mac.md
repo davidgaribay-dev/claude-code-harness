@@ -32,8 +32,8 @@ ssh-keygen -t ed25519 -C "{REPLACE_ME}"
 
 # Git Config
 
+git config --global user.name "David Garibay"
 git config --global user.email "me@davidgaribay.dev"
-git config --global user.name "David Garibay" 
 
 # usql
 # https://github.com/xo/usql
