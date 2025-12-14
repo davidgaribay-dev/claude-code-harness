@@ -1,0 +1,255 @@
+/* Custom Starlight theme to match Rewind branding */
+
+:root {
+  /* Brand Colors - Purple accent for Rewind */
+  --sl-color-accent-low: hsl(277, 100%, 95%);
+  --sl-color-accent: hsl(277, 100%, 60%);
+  --sl-color-accent-high: hsl(277, 100%, 40%);
+
+  /* Grayscale */
+  --sl-color-white: hsl(0, 0%, 100%);
+  --sl-color-gray-1: hsl(0, 0%, 95%);
+  --sl-color-gray-2: hsl(0, 0%, 88%);
+  --sl-color-gray-3: hsl(0, 0%, 75%);
+  --sl-color-gray-4: hsl(0, 0%, 50%);
+  --sl-color-gray-5: hsl(0, 0%, 25%);
+  --sl-color-gray-6: hsl(0, 0%, 12%);
+  --sl-color-black: hsl(0, 0%, 5%);
+
+  /* Typography - Refined, spacious like Starlight */
+  --sl-text-base: 1rem;
+  --sl-text-sm: 0.875rem;
+  --sl-text-xs: 0.75rem;
+  --sl-text-lg: 1.125rem;
+  --sl-text-xl: 1.25rem;
+  --sl-text-2xl: 1.5rem;
+  --sl-text-3xl: 1.875rem;
+  --sl-text-4xl: 2.25rem;
+  --sl-text-5xl: 3rem;
+
+  /* Line Heights - Generous spacing for readability */
+  --sl-line-height-tight: 1.2;
+  --sl-line-height-base: 1.6;
+  --sl-line-height-relaxed: 1.75;
+
+  /* Spacing - Ample room to breathe */
+  --sl-spacing-xs: 0.5rem;
+  --sl-spacing-sm: 0.75rem;
+  --sl-spacing-md: 1rem;
+  --sl-spacing-lg: 1.5rem;
+  --sl-spacing-xl: 2rem;
+  --sl-spacing-2xl: 3rem;
+  --sl-spacing-3xl: 4rem;
+}
+
+:root[data-theme='dark'] {
+  /* Dark mode accent colors */
+  --sl-color-accent-low: hsl(277, 100%, 15%);
+  --sl-color-accent: hsl(277, 100%, 60%);
+  --sl-color-accent-high: hsl(277, 100%, 80%);
+
+  /* Dark mode grayscale */
+  --sl-color-white: hsl(0, 0%, 5%);
+  --sl-color-gray-1: hsl(0, 0%, 12%);
+  --sl-color-gray-2: hsl(0, 0%, 18%);
+  --sl-color-gray-3: hsl(0, 0%, 25%);
+  --sl-color-gray-4: hsl(0, 0%, 50%);
+  --sl-color-gray-5: hsl(0, 0%, 75%);
+  --sl-color-gray-6: hsl(0, 0%, 88%);
+  --sl-color-black: hsl(0, 0%, 95%);
+}
+
+/* Typography Enhancements */
+.sl-markdown-content {
+  font-size: var(--sl-text-base);
+  line-height: var(--sl-line-height-base);
+}
+
+.sl-markdown-content h1 {
+  font-size: var(--sl-text-4xl);
+  line-height: var(--sl-line-height-tight);
+  margin-bottom: var(--sl-spacing-xl);
+  font-weight: 700;
+}
+
+.sl-markdown-content h2 {
+  font-size: var(--sl-text-3xl);
+  line-height: var(--sl-line-height-tight);
+  margin-top: var(--sl-spacing-2xl);
+  margin-bottom: var(--sl-spacing-lg);
+  font-weight: 600;
+}
+
+.sl-markdown-content h3 {
+  font-size: var(--sl-text-2xl);
+  line-height: var(--sl-line-height-tight);
+  margin-top: var(--sl-spacing-xl);
+  margin-bottom: var(--sl-spacing-md);
+  font-weight: 600;
+}
+
+.sl-markdown-content h4 {
+  font-size: var(--sl-text-xl);
+  line-height: var(--sl-line-height-tight);
+  margin-top: var(--sl-spacing-lg);
+  margin-bottom: var(--sl-spacing-sm);
+  font-weight: 600;
+}
+
+/* Paragraph Spacing */
+.sl-markdown-content p {
+  margin-bottom: var(--sl-spacing-lg);
+  line-height: var(--sl-line-height-relaxed);
+}
+
+/* List Spacing */
+.sl-markdown-content ul,
+.sl-markdown-content ol {
+  margin-bottom: var(--sl-spacing-lg);
+  padding-left: var(--sl-spacing-xl);
+}
+
+.sl-markdown-content li {
+  margin-bottom: var(--sl-spacing-sm);
+  line-height: var(--sl-line-height-relaxed);
+}
+
+/* Card Grid Spacing */
+.card-grid {
+  gap: var(--sl-spacing-lg);
+  margin-top: var(--sl-spacing-xl);
+  margin-bottom: var(--sl-spacing-2xl);
+}
+
+/* Card Enhancements */
+.card {
+  padding: var(--sl-spacing-lg);
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.2);
+}
+
+/* Code Block Enhancements */
+.sl-markdown-content pre {
+  margin-top: var(--sl-spacing-lg);
+  margin-bottom: var(--sl-spacing-xl);
+  padding: var(--sl-spacing-lg);
+  border-radius: 0.5rem;
+  font-size: var(--sl-text-sm);
+  line-height: var(--sl-line-height-base);
+}
+
+.sl-markdown-content code {
+  font-size: var(--sl-text-sm);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  background: var(--sl-color-gray-1);
+}
+
+/* Table Enhancements */
+.sl-markdown-content table {
+  margin-top: var(--sl-spacing-lg);
+  margin-bottom: var(--sl-spacing-xl);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.sl-markdown-content th {
+  padding: var(--sl-spacing-md);
+  font-weight: 600;
+  font-size: var(--sl-text-sm);
+}
+
+.sl-markdown-content td {
+  padding: var(--sl-spacing-md);
+  font-size: var(--sl-text-sm);
+  line-height: var(--sl-line-height-base);
+}
+
+/* Aside/Callout Spacing */
+.sl-markdown-content aside {
+  margin-top: var(--sl-spacing-lg);
+  margin-bottom: var(--sl-spacing-xl);
+  padding: var(--sl-spacing-lg);
+  border-radius: 0.5rem;
+}
+
+/* Steps Component Spacing */
+.steps {
+  margin-top: var(--sl-spacing-lg);
+  margin-bottom: var(--sl-spacing-2xl);
+}
+
+.steps li {
+  margin-bottom: var(--sl-spacing-lg);
+}
+
+/* Tab Component Spacing */
+.tabs {
+  margin-top: var(--sl-spacing-lg);
+  margin-bottom: var(--sl-spacing-xl);
+}
+
+/* Blockquote Styling */
+.sl-markdown-content blockquote {
+  margin: var(--sl-spacing-xl) 0;
+  padding: var(--sl-spacing-md) var(--sl-spacing-lg);
+  border-left: 4px solid var(--sl-color-accent);
+  background: var(--sl-color-gray-1);
+  border-radius: 0 0.5rem 0.5rem 0;
+  font-style: italic;
+}
+
+/* Horizontal Rule */
+.sl-markdown-content hr {
+  margin: var(--sl-spacing-3xl) 0;
+  border: none;
+  border-top: 1px solid var(--sl-color-gray-2);
+}
+
+/* Link Styling */
+.sl-markdown-content a {
+  color: var(--sl-color-accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.sl-markdown-content a:hover {
+  border-bottom-color: var(--sl-color-accent);
+}
+
+/* Badge Styling */
+.sl-badge {
+  font-size: var(--sl-text-xs);
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+  :root {
+    --sl-text-4xl: 1.875rem;
+    --sl-text-3xl: 1.5rem;
+    --sl-text-2xl: 1.25rem;
+    --sl-spacing-2xl: 2rem;
+    --sl-spacing-3xl: 2.5rem;
+  }
+
+  .sl-markdown-content h1 {
+    margin-bottom: var(--sl-spacing-lg);
+  }
+
+  .sl-markdown-content h2 {
+    margin-top: var(--sl-spacing-xl);
+  }
+
+  .card-grid {
+    gap: var(--sl-spacing-md);
+  }
+}

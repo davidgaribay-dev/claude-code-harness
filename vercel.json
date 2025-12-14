@@ -3,6 +3,11 @@
   "buildCommand": "cd packages/marketing && pnpm build",
   "outputDirectory": "packages/marketing/dist",
   "devCommand": "cd packages/marketing && pnpm dev",
-  "installCommand": "pnpm install",
-  "framework": "astro"
+  "installCommand": "pnpm install --filter @rewind/marketing --filter @rewind/shared",
+  "framework": "astro",
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  }
 }

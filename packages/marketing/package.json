@@ -1,0 +1,25 @@
+{
+  "name": "@rewind/marketing",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.37.1",
+    "@rewind/shared": "workspace:*",
+    "@tailwindcss/vite": "^4.1.18",
+    "@vercel/blob": "^2.0.0",
+    "astro": "^5.1.7",
+    "tailwindcss": "^4.1.18"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.6",
+    "@types/node": "^22",
+    "typescript": "^5.9.2"
+  }
+}

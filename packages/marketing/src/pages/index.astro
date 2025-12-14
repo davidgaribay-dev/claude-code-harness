@@ -1,0 +1,629 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Navigation from '@/components/Navigation.astro';
+import Footer from '@/components/Footer.astro';
+import { BLOB_URLS } from '@/utils/blob';
+---
+
+<BaseLayout
+  title="Rewind - Enterprise-Grade AI Development Governance & Analytics"
+  description="Comprehensive governance, auditability, and cost optimization for Claude Code workflows. Transform AI conversations into actionable insights with full traceability and compliance-ready reporting."
+>
+  <Navigation />
+
+  <!-- Hero Section -->
+  <section class="pt-32 pb-20 md:pt-40 md:pb-28 hero-gradient dots-bg relative overflow-hidden">
+    <!-- Gradient orbs -->
+    <div class="gradient-orb gradient-orb-1"></div>
+    <div class="gradient-orb gradient-orb-2"></div>
+
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="max-w-6xl mx-auto">
+        <!-- Hero Content -->
+        <div class="text-center mb-16">
+          <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-10 leading-tight animate-card">
+            Enterprise AI Development<br />
+            <span class="text-primary">Governance & Cost Optimization</span>
+          </h1>
+          <p class="text-lg md:text-xl text-foreground/80 mb-12 max-w-3xl mx-auto leading-relaxed animate-card">
+            Complete visibility and control over Claude Code workflows with comprehensive auditability,
+            token-level cost tracking, and compliance-ready reporting. Self-hosted for maximum data sovereignty.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8 animate-card">
+            <a
+              href="#getting-started"
+              class="inline-flex items-center justify-center px-8 py-3 text-base font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Get Started
+              <svg class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </a>
+            <a
+              href="https://github.com/davidgaribay-dev/rewind"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center justify-center px-8 py-3 text-base font-semibold rounded-lg border border-border bg-background hover:bg-accent transition-colors"
+            >
+              <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+              </svg>
+              View on GitHub
+            </a>
+          </div>
+          <p class="text-xs text-muted-foreground animate-card">Enterprise-ready • Data sovereignty • Production-grade observability</p>
+        </div>
+
+        <!-- Hero Visual - Featured Demo Video -->
+        <div class="animate-card">
+          <div class="glass-card p-4 rounded-xl shadow-2xl">
+            <div class="relative rounded-lg overflow-hidden border border-border/50">
+              <video
+                src={BLOB_URLS.videos.lightMode}
+                controls
+                playsinline
+                poster={BLOB_URLS.images.rawNavBar}
+                class="w-full"
+              >
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </div>
+          <p class="text-xs text-center text-muted-foreground mt-4">
+            Real-time conversation tracking with comprehensive analytics and intuitive interface
+          </p>
+        </div>
+
+        <!-- Stats -->
+        <div class="mt-24 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+          <div class="glass-card p-8 rounded-lg text-center animate-card">
+            <div class="text-3xl md:text-4xl font-bold text-primary mb-3">100%</div>
+            <div class="text-xs font-medium text-muted-foreground">Audit Coverage</div>
+          </div>
+          <div class="glass-card p-8 rounded-lg text-center animate-card">
+            <div class="text-3xl md:text-4xl font-bold text-primary mb-3">Token</div>
+            <div class="text-xs font-medium text-muted-foreground">Cost Precision</div>
+          </div>
+          <div class="glass-card p-8 rounded-lg text-center animate-card">
+            <div class="text-3xl md:text-4xl font-bold text-primary mb-3">Full</div>
+            <div class="text-xs font-medium text-muted-foreground">Traceability</div>
+          </div>
+          <div class="glass-card p-8 rounded-lg text-center animate-card">
+            <div class="text-3xl md:text-4xl font-bold text-primary mb-3">Self</div>
+            <div class="text-xs font-medium text-muted-foreground">Hosted</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="py-24 bg-background">
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-20">
+        <h2 class="text-2xl md:text-3xl font-bold mb-6 animate-card">
+          Enterprise AI Development <span class="text-primary">Governance Platform</span>
+        </h2>
+        <p class="text-base text-muted-foreground max-w-2xl mx-auto animate-card">
+          Complete observability, cost management, and compliance controls for AI-assisted development at scale
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Feature 1: Full Auditability -->
+        <div class="glass-card p-8 rounded-lg hover-lift group animate-card">
+          <div class="mb-6">
+            <svg class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold mb-4">Complete Audit Trail</h3>
+          <p class="text-sm text-muted-foreground leading-relaxed">
+            Comprehensive logging of every AI interaction with full conversation history, model versions,
+            and tool executions. Meets compliance requirements for regulated industries with immutable records.
+          </p>
+        </div>
+
+        <!-- Feature 2: Cost Optimization -->
+        <div class="glass-card p-8 rounded-lg hover-lift group animate-card">
+          <div class="mb-6">
+            <svg class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold mb-4">Granular Cost Analytics</h3>
+          <p class="text-sm text-muted-foreground leading-relaxed">
+            Token-level cost tracking with detailed breakdowns of input, output, and cache usage. Identify
+            optimization opportunities and allocate AI spend across projects and teams with precision.
+          </p>
+        </div>
+
+        <!-- Feature 3: Tool Execution Traceability -->
+        <div class="glass-card p-8 rounded-lg hover-lift group animate-card">
+          <div class="mb-6">
+            <svg class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold mb-4">Tool Execution Monitoring</h3>
+          <p class="text-sm text-muted-foreground leading-relaxed">
+            Full visibility into all AI tool operations with parameters, results, and error states. Understand
+            exactly what code changes were made, when, and by which AI model for complete operational transparency.
+          </p>
+        </div>
+
+        <!-- Feature 4: Data Sovereignty -->
+        <div class="glass-card p-8 rounded-lg hover-lift group animate-card">
+          <div class="mb-6">
+            <svg class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold mb-4">Self-Hosted Data Control</h3>
+          <p class="text-sm text-muted-foreground leading-relaxed">
+            Complete data sovereignty with on-premise deployment. Your AI conversation data never leaves
+            your infrastructure, ensuring compliance with data residency and privacy regulations.
+          </p>
+        </div>
+
+        <!-- Feature 5: Analytics & Reporting -->
+        <div class="glass-card p-8 rounded-lg hover-lift group animate-card">
+          <div class="mb-6">
+            <svg class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold mb-4">Advanced Analytics & KPIs</h3>
+          <p class="text-sm text-muted-foreground leading-relaxed">
+            Comprehensive dashboards tracking AI usage patterns, model performance metrics, and team productivity
+            indicators. Export compliance-ready reports for stakeholder communication and budget justification.
+          </p>
+        </div>
+
+        <!-- Feature 6: Knowledge Management -->
+        <div class="glass-card p-8 rounded-lg hover-lift group animate-card">
+          <div class="mb-6">
+            <svg class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold mb-4">Searchable Knowledge Repository</h3>
+          <p class="text-sm text-muted-foreground leading-relaxed">
+            Transform AI interactions into organizational knowledge. Full-text search enables teams to leverage
+            past solutions, reduce duplicate effort, and maintain institutional knowledge across development cycles.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screenshots Section -->
+  <section class="py-24 hero-gradient dots-bg relative overflow-hidden">
+    <!-- Gradient orbs -->
+    <div class="gradient-orb gradient-orb-1" style="top: 30%; right: 10%;"></div>
+    <div class="gradient-orb gradient-orb-2" style="bottom: 30%; left: 10%;"></div>
+
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="text-center mb-20">
+        <h2 class="text-2xl md:text-3xl font-bold mb-6 animate-card">
+          Comprehensive Analytics Dashboard
+        </h2>
+        <p class="text-base text-muted-foreground max-w-2xl mx-auto animate-card">
+          Real-time metrics, conversation insights, and cost analytics in a modern, intuitive interface
+        </p>
+      </div>
+
+      <div class="max-w-5xl mx-auto space-y-16">
+        <!-- Stats Dashboard Screenshot -->
+        <div class="animate-card">
+          <div class="glass-card p-6 rounded-lg">
+            <img
+              src={BLOB_URLS.images.stats}
+              alt="Real-time analytics dashboard showing conversation statistics, token usage, and cost metrics"
+              class="w-full rounded-lg border border-border/50"
+              loading="lazy"
+            />
+          </div>
+          <div class="mt-6 text-center">
+            <h3 class="text-lg font-semibold mb-2">Real-Time Statistics</h3>
+            <p class="text-xs text-muted-foreground max-w-2xl mx-auto">
+              Monitor token usage, conversation metrics, and cost analytics with interactive charts and visualizations
+            </p>
+          </div>
+        </div>
+
+        <!-- Navigation Screenshot -->
+        <div class="animate-card">
+          <div class="glass-card p-6 rounded-lg">
+            <img
+              src={BLOB_URLS.images.rawNavBar}
+              alt="Clean navigation interface with project and conversation browsing capabilities"
+              class="w-full rounded-lg border border-border/50"
+              loading="lazy"
+            />
+          </div>
+          <div class="mt-6 text-center">
+            <h3 class="text-lg font-semibold mb-2">Intuitive Navigation</h3>
+            <p class="text-xs text-muted-foreground max-w-2xl mx-auto">
+              Browse conversations by project with powerful search and filtering capabilities
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section id="how-it-works" class="py-24 hero-gradient dots-bg relative overflow-hidden">
+    <!-- Gradient orbs -->
+    <div class="gradient-orb gradient-orb-1" style="top: 20%; left: 80%;"></div>
+    <div class="gradient-orb gradient-orb-2" style="bottom: 20%; left: 10%;"></div>
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="text-center mb-20">
+        <h2 class="text-2xl md:text-3xl font-bold mb-6 animate-card">
+          Deployment & Integration
+        </h2>
+        <p class="text-base text-muted-foreground max-w-2xl mx-auto animate-card">
+          Rapid deployment with containerized infrastructure and zero-config data pipeline integration
+        </p>
+      </div>
+
+      <div class="max-w-4xl mx-auto space-y-10">
+        <!-- Step 1 -->
+        <div class="flex gap-6 items-start animate-card">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-base">
+            1
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold mb-3">Infrastructure Provisioning</h3>
+            <p class="text-sm text-muted-foreground">
+              Deploy the containerized stack: <code class="px-2 py-1 bg-muted rounded text-xs">git clone https://github.com/davidgaribay-dev/rewind.git</code>
+              Compatible with Docker, Kubernetes, or bare-metal deployments.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="flex gap-6 items-start animate-card">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-base">
+            2
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold mb-3">Configuration Management</h3>
+            <p class="text-sm text-muted-foreground">
+              Configure data source paths via environment variables or web-based settings interface.
+              Supports centralized configuration management for multi-environment deployments.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="flex gap-6 items-start animate-card">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-base">
+            3
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold mb-3">Automated Service Orchestration</h3>
+            <p class="text-sm text-muted-foreground">
+              Execute <code class="px-2 py-1 bg-muted rounded text-xs">docker-compose up -d</code> for fully automated
+              deployment. Infrastructure as code handles database migrations, service dependencies, and health checks.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="flex gap-6 items-start animate-card">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-base">
+            4
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold mb-3">Data Pipeline Integration</h3>
+            <p class="text-sm text-muted-foreground">
+              Initiate ETL processes through web UI or CLI with real-time progress monitoring.
+              Supports incremental updates and scheduled batch processing for large-scale operations.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="flex gap-6 items-start animate-card">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-base">
+            5
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold mb-3">Operational Dashboard Access</h3>
+            <p class="text-sm text-muted-foreground">
+              Access comprehensive analytics, audit logs, and compliance reports through the web interface.
+              RESTful API available for integration with existing enterprise monitoring and BI tools.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Key Benefits Section -->
+  <section class="py-24 bg-background">
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-20">
+        <h2 class="text-2xl md:text-3xl font-bold mb-6 animate-card">
+          Why Organizations Choose <span class="text-primary">Rewind</span>
+        </h2>
+        <p class="text-base text-muted-foreground max-w-2xl mx-auto animate-card">
+          Address critical AI governance challenges with comprehensive solutions designed for enterprise scale
+        </p>
+      </div>
+
+      <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-10">
+        <div class="p-8 rounded-lg border border-border bg-card animate-card">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+              <svg class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-base font-semibold mb-2">Compliance-Ready Architecture</h3>
+              <p class="text-xs text-muted-foreground leading-relaxed">
+                Built-in audit logging, immutable conversation records, and data retention controls ensure
+                readiness for SOC 2, ISO 27001, GDPR, and industry-specific regulations.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-8 rounded-lg border border-border bg-card animate-card">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center flex-shrink-0">
+              <svg class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-base font-semibold mb-2">Zero-Trust Data Sovereignty</h3>
+              <p class="text-xs text-muted-foreground leading-relaxed">
+                Self-hosted deployment ensures sensitive AI conversations never leave your infrastructure.
+                Complete control over data location, access controls, and encryption at rest and in transit.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-8 rounded-lg border border-border bg-card animate-card">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
+              <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-base font-semibold mb-2">Cost Optimization & ROI Tracking</h3>
+              <p class="text-xs text-muted-foreground leading-relaxed">
+                Token-level granularity enables precise cost allocation, budget forecasting, and spend optimization.
+                Identify inefficient patterns and justify AI investments with quantifiable metrics.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-8 rounded-lg border border-border bg-card animate-card">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="h-10 w-10 rounded-lg bg-cyan-500/10 flex items-center justify-center flex-shrink-0">
+              <svg class="h-5 w-5 text-cyan-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-base font-semibold mb-2">Operational Intelligence</h3>
+              <p class="text-xs text-muted-foreground leading-relaxed">
+                Real-time dashboards and historical analytics provide actionable insights into AI adoption,
+                team productivity, model performance, and development velocity trends.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech Stack Section -->
+  <section class="py-24 bg-background">
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-20">
+        <h2 class="text-2xl md:text-3xl font-bold mb-6 animate-card">
+          Enterprise-Grade <span class="text-primary">Technology Stack</span>
+        </h2>
+        <p class="text-base text-muted-foreground max-w-2xl mx-auto animate-card">
+          Battle-tested technologies with proven scalability, security, and maintainability for mission-critical AI operations
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-10 max-w-4xl mx-auto">
+        <!-- Frontend -->
+        <div class="p-8 rounded-lg border border-border bg-card animate-card">
+          <h3 class="text-lg font-semibold mb-5 flex items-center">
+            <span class="h-2 w-2 rounded-full bg-blue-500 mr-3"></span>
+            Frontend (@rewind/web)
+          </h3>
+          <ul class="space-y-3 text-xs text-muted-foreground">
+            <li>• React 19 with React Router v7 (SPA mode)</li>
+            <li>• TanStack Query v5 for server state</li>
+            <li>• TanStack Table v8 for data tables</li>
+            <li>• Tailwind CSS v4 with custom theme</li>
+            <li>• Monaco Editor (VS Code experience)</li>
+            <li>• Radix UI primitives (46 components)</li>
+            <li>• React Markdown with syntax highlighting</li>
+            <li>• Recharts for data visualization</li>
+            <li>• Vite 7.1 for lightning-fast dev server</li>
+          </ul>
+        </div>
+
+        <!-- Backend -->
+        <div class="p-8 rounded-lg border border-border bg-card animate-card">
+          <h3 class="text-lg font-semibold mb-5 flex items-center">
+            <span class="h-2 w-2 rounded-full bg-green-500 mr-3"></span>
+            Backend (@rewind/api)
+          </h3>
+          <ul class="space-y-3 text-xs text-muted-foreground">
+            <li>• Hono 4.7 (ultra-fast web framework)</li>
+            <li>• Drizzle ORM 0.45 with PostgreSQL</li>
+            <li>• TypeScript strict mode (100% type safe)</li>
+            <li>• Chokidar for file system watching</li>
+            <li>• Winston for structured logging</li>
+            <li>• Server-Sent Events for real-time updates</li>
+            <li>• Docker Compose for local PostgreSQL</li>
+            <li>• pnpm workspace monorepo architecture</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Use Cases Section -->
+  <section class="py-24 hero-gradient dots-bg relative overflow-hidden">
+    <!-- Gradient orb -->
+    <div class="gradient-orb gradient-orb-1" style="top: 50%; right: 0%; width: 400px; height: 400px;"></div>
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="text-center mb-20">
+        <h2 class="text-2xl md:text-3xl font-bold mb-6 animate-card">
+          Enterprise Use Cases
+        </h2>
+        <p class="text-base text-muted-foreground max-w-2xl mx-auto animate-card">
+          From startups to enterprises, organizations rely on Rewind for AI governance, compliance, and operational excellence
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div class="p-8 rounded-lg bg-card border border-border animate-card">
+          <h3 class="text-base font-semibold mb-3">Financial Governance</h3>
+          <p class="text-xs text-muted-foreground">Real-time AI spend tracking with per-project allocation, budget alerts, and ROI analysis for cost center accountability</p>
+        </div>
+
+        <div class="p-8 rounded-lg bg-card border border-border animate-card">
+          <h3 class="text-base font-semibold mb-3">Regulatory Compliance</h3>
+          <p class="text-xs text-muted-foreground">Complete audit trails for SOC 2, ISO 27001, and industry regulations with immutable conversation logs and model version tracking</p>
+        </div>
+
+        <div class="p-8 rounded-lg bg-card border border-border animate-card">
+          <h3 class="text-base font-semibold mb-3">Quality Assurance</h3>
+          <p class="text-xs text-muted-foreground">Review AI-generated code changes with full context, ensuring code quality standards and reducing technical debt from AI workflows</p>
+        </div>
+
+        <div class="p-8 rounded-lg bg-card border border-border animate-card">
+          <h3 class="text-base font-semibold mb-3">Team Performance Analytics</h3>
+          <p class="text-xs text-muted-foreground">Measure AI adoption rates, identify power users, and optimize team productivity through data-driven insights</p>
+        </div>
+
+        <div class="p-8 rounded-lg bg-card border border-border animate-card">
+          <h3 class="text-base font-semibold mb-3">Incident Response & Root Cause Analysis</h3>
+          <p class="text-xs text-muted-foreground">Trace production issues back to specific AI interactions, enabling faster incident resolution and preventing recurrence</p>
+        </div>
+
+        <div class="p-8 rounded-lg bg-card border border-border animate-card">
+          <h3 class="text-base font-semibold mb-3">Knowledge Continuity</h3>
+          <p class="text-xs text-muted-foreground">Preserve institutional knowledge through searchable AI conversation archives, reducing onboarding time and decision-making uncertainty</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section id="getting-started" class="py-24 bg-background">
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl mx-auto text-center">
+        <h2 class="text-2xl md:text-3xl font-bold mb-6 animate-card">
+          Deploy Enterprise AI Governance in Minutes
+        </h2>
+        <p class="text-base text-muted-foreground mb-10 animate-card">
+          Open source, self-hosted platform designed for organizations that require complete data sovereignty,
+          comprehensive auditability, and production-grade AI operations management
+        </p>
+
+        <!-- Code Block -->
+        <div class="bg-muted/50 rounded-lg p-8 text-left mb-10 border border-border animate-card">
+          <div class="flex items-center justify-between mb-5">
+            <span class="text-xs font-medium text-muted-foreground">Quick Start</span>
+            <button
+              onclick="navigator.clipboard.writeText(document.getElementById('quick-start-code').innerText)"
+              class="text-xs px-3 py-1.5 rounded bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+            >
+              Copy
+            </button>
+          </div>
+          <pre id="quick-start-code" class="text-xs overflow-x-auto"><code># Clone and configure
+git clone https://github.com/davidgaribay-dev/rewind.git
+cd rewind
+cp .env.example .env
+
+# Set your Claude Code data path in .env (defaults to ~/.claude/projects)
+# REWIND_DATA_PATH=~/.claude/projects
+
+# Start everything (one command!)
+docker-compose up -d
+
+# That's it! 🎉
+# Web: http://localhost:8430
+# API: http://localhost:8429</code></pre>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center animate-card">
+          <a
+            href="https://github.com/davidgaribay-dev/rewind"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center justify-center px-7 py-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+            </svg>
+            View on GitHub
+          </a>
+          <a
+            href="https://github.com/davidgaribay-dev/rewind/blob/main/README.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center justify-center px-7 py-3 text-sm font-medium rounded-lg border border-border bg-background hover:bg-accent transition-colors"
+          >
+            Read Documentation
+          </a>
+        </div>
+
+        <!-- Features List -->
+        <div class="mt-14 grid grid-cols-2 md:grid-cols-4 gap-6 text-xs text-muted-foreground animate-card">
+          <div class="flex items-center justify-center gap-2">
+            <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>MIT License</span>
+          </div>
+          <div class="flex items-center justify-center gap-2">
+            <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Self-Hosted</span>
+          </div>
+          <div class="flex items-center justify-center gap-2">
+            <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Type Safe</span>
+          </div>
+          <div class="flex items-center justify-center gap-2">
+            <svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Docker Ready</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  code {
+    font-family: var(--font-mono);
+  }
+</style>

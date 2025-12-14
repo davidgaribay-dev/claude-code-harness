@@ -1,0 +1,33 @@
+# Exclude all packages except marketing and shared
+packages/api
+packages/web
+packages/cli
+
+# Exclude development files
+.env
+.env.*
+!.env.example
+*.log
+logs/
+
+# Exclude database
+/drizzle/
+
+# Exclude Docker files
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Exclude documentation not needed for build
+DOCKER_*.md
+CLI_IMPLEMENTATION.md
+DEPLOYMENT_READY.md
+
+# Exclude assets generation
+generate_logos*.py
+assets/
+
+# Exclude IDE and system files
+.vscode/
+.idea/
+.DS_Store

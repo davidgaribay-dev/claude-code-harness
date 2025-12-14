@@ -393,6 +393,38 @@ The following environment variables can be configured in `.env` (see [.env.examp
   - **Note**: Can also be configured via Settings UI at `/settings`
   - Database setting takes precedence over environment variable
 
+## Deployment
+
+### Marketing Website (Vercel)
+
+The marketing website can be deployed to Vercel with one click. See [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md) for detailed instructions.
+
+**Quick Deploy:**
+1. Import repository at [vercel.com/new](https://vercel.com/new)
+2. Vercel auto-detects the configuration from `vercel.json`
+3. Click "Deploy" - no environment variables needed!
+
+The configuration is already set up to:
+- ✅ Deploy only the marketing site (`packages/marketing`)
+- ✅ Exclude sensitive packages (API, Web, CLI)
+- ✅ Auto-deploy on every push to `main`
+- ✅ No secrets or environment variables required
+
+### Self-Hosted (Full Application)
+
+For self-hosting the complete application (API + Web + Database), use Docker:
+
+```bash
+# Production deployment
+docker-compose up -d
+
+# Or use the pre-built images
+docker pull ghcr.io/davidgaribay-dev/rewind-api:latest
+docker pull ghcr.io/davidgaribay-dev/rewind-web:latest
+```
+
+See [DOCKER_TROUBLESHOOTING.md](DOCKER_TROUBLESHOOTING.md) for deployment best practices.
+
 ## License
 
 MIT

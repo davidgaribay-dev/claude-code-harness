@@ -1,0 +1,81 @@
+---
+const currentYear = new Date().getFullYear();
+
+const footerLinks = {
+  product: [
+    { href: '#features', label: 'Features' },
+    { href: '#how-it-works', label: 'How It Works' },
+    { href: '#getting-started', label: 'Get Started' },
+  ],
+  resources: [
+    { href: 'https://github.com/davidgaribay-dev/rewind', label: 'GitHub', external: true },
+    { href: 'https://github.com/davidgaribay-dev/rewind/issues', label: 'Issues', external: true },
+    { href: '/docs', label: 'Documentation' },
+  ],
+};
+---
+
+<footer class="border-t border-border bg-muted/30">
+  <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+      <!-- Brand -->
+      <div class="space-y-4">
+        <div class="font-bold text-xl">
+          <span>Rewind</span>
+        </div>
+        <p class="text-sm text-muted-foreground">
+          Transform your Claude Code conversation history into beautiful, searchable insights.
+        </p>
+      </div>
+
+      <!-- Product -->
+      <div>
+        <h3 class="font-semibold mb-4">Product</h3>
+        <ul class="space-y-3">
+          {footerLinks.product.map(link => (
+            <li>
+              <a href={link.href} class="text-sm text-muted-foreground hover:text-primary transition-all duration-200">
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- Resources -->
+      <div>
+        <h3 class="font-semibold mb-4">Resources</h3>
+        <ul class="space-y-3">
+          {footerLinks.resources.map(link => (
+            <li>
+              <a
+                href={link.href}
+                class="text-sm text-muted-foreground hover:text-primary transition-all duration-200"
+                {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+              >
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="pt-8 border-t border-border">
+      <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+        <p class="text-sm text-muted-foreground">
+          © {currentYear} Rewind. Open source under MIT License.
+        </p>
+        <div class="flex items-center space-x-6">
+          <a href="#" class="text-sm text-muted-foreground hover:text-primary transition-all duration-200">
+            Privacy
+          </a>
+          <a href="#" class="text-sm text-muted-foreground hover:text-primary transition-all duration-200">
+            Terms
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
