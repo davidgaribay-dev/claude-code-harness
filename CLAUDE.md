@@ -114,24 +114,39 @@ pnpm --filter @rewind/api build
 ## Architecture
 
 ### Data Flow
-1. **Source Data**: Claude Code stores conversation history as JSON files in project directories under `~/Library/Application Support/Rewind`
-2. **ETL Layer**: The ETL service (`packages/api/src/etl/service.ts`) scans directories, parses JSON files, and loads data into PostgreSQL
-3. **Database**: PostgreSQL (port 54321) stores normalized data with four main tables: `projects`, `conversations`, `messages`, `processed_files`
-4. **API Layer**: Hono server (`packages/api/src/index.ts`) exposes REST endpoints at port 3000
-5. **Frontend**: React SPA fetches data via TanStack Query and displays conversations in a browsable UI
+1. **Source Data**: Claude Code stores conversation history as JSONL files in project directories (configurable via Settings UI or `REWIND_DATA_PATH` env var)
+2. **ETL Layer**: The ETL service ([packages/api/src/etl/service.ts](packages/api/src/etl/service.ts)) scans directories, parses JSONL files, and loads data into PostgreSQL with real-time progress streaming via Server-Sent Events
+3. **Database**: PostgreSQL (port 54321) stores normalized data with five main tables: `projects`, `conversations`, `messages`, `contentBlocks`, `processedFiles`, `settings`
+4. **API Layer**: Hono server ([packages/api/src/index.ts](packages/api/src/index.ts)) exposes REST endpoints at port 3000
+5. **Frontend**: React SPA fetches data via TanStack Query and displays conversations in a browsable UI with Monaco code editor, statistics dashboard, and dark mode support
 
 ### Database Schema
 
-The schema is defined in `packages/api/src/db/schema.ts`:
+The schema is defined in [packages/api/src/db/schema.ts](packages/api/src/db/schema.ts):
 
 - **projects**: Represents project directories (one-to-many with conversations)
+  - Fields: `id`, `name`, `path` (unique), `createdAt`, `updatedAt`, `lastScannedAt`
+
 - **conversations**: Individual conversation sessions (one-to-many with messages)
+  - Fields: `id`, `projectId`, `conversationId` (unique), `sessionId`, `title`, `model`, `totalTokens`, `inputTokens`, `outputTokens`, `createdAt`, `updatedAt`, `metadata`
+
 - **messages**: Individual user/assistant messages with content and timestamps
-- **processed_files**: Tracks which JSON files have been processed and when (for incremental updates)
+  - Fields: `id`, `conversationId`, `messageUuid`, `parentUuid`, `requestId`, `role`, `type`, `content`, `rawContent`, `model`, `inputTokens`, `outputTokens`, `cacheCreationTokens`, `cacheReadTokens`, `stopReason`, `cwd`, `sessionId`, `version`, `gitBranch`, `agentId`, `userType`, `isSidechain`, `timestamp`, `metadata`
+
+- **contentBlocks**: Stores parsed content blocks from messages (thinking, tool use, tool results)
+  - Fields: `id`, `messageId`, `type`, `sequence`, `text`, `thinking`, `toolUseId`, `toolName`, `toolInput`, `toolResultId`, `toolContent`, `isError`, `metadata`
+  - Types: `'text'`, `'tool_use'`, `'tool_result'`, `'thinking'`
+
+- **processedFiles**: Tracks which JSON files have been processed and when (for incremental updates)
+  - Fields: `id`, `filePath` (unique), `lastModified`, `lineCount`, `processedAt`
+
+- **settings**: Stores application configuration (e.g., data path)
+  - Fields: `id`, `key` (unique), `value`, `createdAt`, `updatedAt`
 
 Key relationships:
 - Projects → Conversations (cascade delete)
 - Conversations → Messages (cascade delete)
+- Messages → ContentBlocks (cascade delete)
 
 The ETL process uses `conversationId` (from original Rewind data) as a natural key to upsert conversations without duplicates.
 
@@ -139,24 +154,38 @@ The ETL process uses `conversationId` (from original Rewind data) as a natural k
 
 Located in `packages/api/src/routes/`:
 
-- **Projects** (`routes/projects.ts`):
-  - `GET /api/projects` - List all projects with conversation counts
+- **Projects** ([routes/projects.ts](packages/api/src/routes/projects.ts)):
+  - `GET /api/projects` - List all projects with stats (conversation count, message count, last activity)
   - `GET /api/projects/:id` - Get single project details
   - `GET /api/projects/:id/conversations` - Get all conversations for a project
 
-- **Conversations** (`routes/conversations.ts`):
-  - `GET /api/conversations/:id` - Get conversation with all messages
-  - `GET /api/conversations/search?q=query&projectId=id` - Search conversations by content
+- **Conversations** ([routes/conversations.ts](packages/api/src/routes/conversations.ts)):
+  - `GET /api/conversations/:id` - Get conversation with all messages and content blocks
+  - `GET /api/conversations/search?q=query&projectId=id` - Search conversations by content or title (max 500 chars, max 50 results)
+
+- **ETL** ([routes/etl.ts](packages/api/src/routes/etl.ts)):
+  - `POST /api/etl/run` - Trigger ETL import (runs in background)
+  - `GET /api/etl/status` - Get current ETL status
+  - `GET /api/etl/stream` - Stream ETL progress via Server-Sent Events (SSE)
+
+- **Settings** ([routes/settings.ts](packages/api/src/routes/settings.ts)):
+  - `GET /api/settings/data-path` - Get current data path from database or env var
+  - `POST /api/settings/data-path` - Set/update data path in database
+  - `GET /api/settings/browse?path=...` - Browse directories with conversation detection
+  - `POST /api/settings/test-path` - Validate path and count projects/conversations
+
+- **Health Check**:
+  - `GET /api/health` - Returns `{ status: 'ok', timestamp }`
 
 ### Frontend Architecture
 
 Located in `packages/web/app/`:
 
 - **Routing**: File-based routing via React Router v7 (SPA mode)
-  - [routes/home.tsx](packages/web/app/routes/home.tsx) - Landing page
-  - [routes/projects.tsx](packages/web/app/routes/projects.tsx) - Projects list
-  - [routes/project.$projectId.tsx](packages/web/app/routes/project.$projectId.tsx) - Single project view
-  - [routes/project.$projectId.conversation.$conversationId.tsx](packages/web/app/routes/project.$projectId.conversation.$conversationId.tsx) - Conversation viewer
+  - [routes/home.tsx](packages/web/app/routes/home.tsx) - Projects landing page with grid/table view toggle and ETL import button
+  - [routes/project.$projectId.tsx](packages/web/app/routes/project.$projectId.tsx) - Single project view with conversations list and statistics tab
+  - [routes/project.$projectId.conversation.$conversationId.tsx](packages/web/app/routes/project.$projectId.conversation.$conversationId.tsx) - Conversation viewer with three tabs: Conversation, Raw JSON, Statistics
+  - [routes/settings.tsx](packages/web/app/routes/settings.tsx) - Settings page with directory browser, path validation, and conversation detection
 
 - **Data Fetching**: TanStack Query configured in [lib/queryClient.tsx](packages/web/app/lib/queryClient.tsx)
   - 5 minute stale time
@@ -164,33 +193,79 @@ Located in `packages/web/app/`:
   - No auto-refetch on window focus/reconnect
 
 - **UI Components**: Radix UI primitives + custom components
-  - Base UI components in [components/ui/](packages/web/app/components/ui/)
-  - Application components like `ConversationViewer`, `MessageCard`, `ChatMessage` handle data display
-  - `ThinkingBlock`, `ToolUseBlock`, `ToolResultBlock` render Claude's internal reasoning and tool usage
+  - Base UI components in [components/ui/](packages/web/app/components/ui/) (40+ components)
+  - Application components:
+    - `ChatMessage` - Renders conversation messages with content blocks
+    - `ConversationViewer` - Main conversation display
+    - `MonacoCodeBlock` - Syntax-highlighted code display with copy button
+    - `MonacoDiffBlock` - Diff viewer for code changes
+    - `ThinkingBlock` - Extended thinking display
+    - `ToolUseBlock` - Tool execution display
+    - `ToolResultBlock` - Tool result display
+    - `ETLLogViewer` - Real-time ETL progress viewer with SSE
+    - `StatsDashboard` - Statistics visualization with Recharts
+    - `ProjectCard` - Project card component
+    - `WelcomeScreen` - Welcome message for new users
+  - Data tables with TanStack Table:
+    - `projects/data-table.tsx` - Sortable projects table
+    - `conversations/data-table.tsx` - Sortable conversations table
 
 - **Styling**: Tailwind CSS v4 with custom theme and dark mode support
+  - Theme toggle in navbar with system preference detection
+  - ThemeProvider manages dark/light mode state
 
 ## ETL Incremental Updates
 
-The ETL service implements intelligent incremental processing:
+The ETL service ([packages/api/src/etl/service.ts](packages/api/src/etl/service.ts)) implements intelligent incremental processing:
 
-1. On first run, all JSON files are processed
-2. File modification times are tracked in `processed_files` table
+1. On first run, all JSONL files are processed
+2. File modification times are tracked in `processedFiles` table
 3. On subsequent runs, only modified files are re-processed
-4. When a conversation file is updated, its messages are deleted and re-inserted (full replacement strategy)
+4. When a conversation file is updated, its messages and content blocks are deleted and re-inserted (full replacement strategy)
+5. Real-time progress streaming via Server-Sent Events (SSE) at `/api/etl/stream`
 
-This means `pnpm etl:watch` efficiently monitors the Rewind directory and updates the database only when files change.
+**Progress Events Emitted**:
+- `start` - ETL process beginning
+- `project` - Processing a project directory
+- `conversation` - Processing a conversation file
+- `info` - Status updates
+- `error` - Error occurred
+- `complete` - ETL process finished
+
+**Features**:
+- Content block extraction (thinking, tool use, tool results)
+- Token aggregation at conversation level
+- Auto-generated conversation titles from first user message
+- File operation timeout protection (30s default)
+- Graceful error handling with line-level error reporting
+
+This means `pnpm etl:watch` efficiently monitors the Rewind directory and updates the database only when files change. The frontend can display real-time progress via the `ETLLogViewer` component.
 
 ## Environment Variables
 
-Required in `.env` (see `.env.example`):
+Required in `.env` (see [.env.example](.env.example)):
 
-- **REWIND_DATA_PATH**: Path to Claude Code data directory (e.g., `/Users/username/Library/Application Support/Rewind`)
+**Database Configuration:**
+- **POSTGRES_USER**: PostgreSQL username (default: `rewind`)
+- **POSTGRES_PASSWORD**: PostgreSQL password (default: `rewind_dev_password`)
+- **POSTGRES_DB**: PostgreSQL database name (default: `rewind`)
 - **DATABASE_URL**: PostgreSQL connection string (default: `postgresql://rewind:rewind_dev_password@localhost:54321/rewind`)
-- **API_PORT**: API server port (default: 3000)
-- **WEB_URL**: Frontend URL for CORS (default: http://localhost:5173)
+
+**API Configuration:**
+- **API_PORT**: API server port (default: `3000`)
+- **WEB_URL**: Frontend URL for CORS (default: `http://localhost:5173`)
+
+**Web Configuration:**
+- **VITE_API_URL**: API base URL for frontend (default: `http://localhost:3000`)
+
+**Logging Configuration:**
 - **LOG_LEVEL**: Logging verbosity (options: `error`, `warn`, `info`, `verbose`, `debug`; default: `info`)
 - **NODE_ENV**: Environment mode (`development` or `production`; affects logging behavior)
+
+**Data Path Configuration:**
+- **REWIND_DATA_PATH**: Path to Claude Code data directory (e.g., `/Users/username/Library/Application Support/Rewind`)
+  - Note: This can also be configured via the Settings UI at `/settings`, which stores the path in the database `settings` table
+  - Database setting takes precedence over environment variable
 
 ## Technology Stack
 
@@ -202,14 +277,19 @@ Required in `.env` (see `.env.example`):
 - **tsx**: TypeScript execution for development
 
 ### Web (@rewind/web)
+- **React 19**: Latest React with concurrent features
 - **React Router v7**: File-based routing in SPA mode
-- **TanStack Query**: Server state management and caching
-- **TanStack Table**: Data table components with sorting/filtering
-- **Radix UI**: Unstyled, accessible component primitives
+- **TanStack Query v5**: Server state management and caching
+- **TanStack Table v8**: Data table components with sorting/filtering
+- **Radix UI**: Unstyled, accessible component primitives (Dialog, Tabs, Buttons, etc.)
 - **Tailwind CSS v4**: Utility-first styling with Vite plugin
+- **Monaco Editor**: Full-featured code editor with syntax highlighting
 - **React Markdown**: Markdown rendering with syntax highlighting (rehype-highlight)
 - **Recharts**: Data visualization charts
 - **date-fns**: Date formatting utilities
+- **Sonner**: Toast notifications
+- **Lucide React**: Icon library
+- **Vite**: Build tool and dev server
 
 ### Shared (@rewind/shared)
 - **TypeScript types**: Shared type definitions for API contracts and domain models
@@ -240,13 +320,27 @@ Required in `.env` (see `.env.example`):
 3. Reuse or create UI components in `components/`
 4. Follow existing patterns for loading states, error handling, and empty states
 
+### Configuring Data Path
+1. **Option 1 - Settings UI** (Recommended):
+   - Navigate to `/settings` in the web application
+   - Use the directory browser to navigate to your Rewind data directory
+   - The browser shows which directories contain conversation files (`.jsonl`)
+   - Click "Test Path" to validate the selection
+   - Click "Save Settings" to persist the path in the database
+   - Database setting takes precedence over environment variable
+
+2. **Option 2 - Environment Variable**:
+   - Set `REWIND_DATA_PATH` in `.env` file
+   - This is used as a fallback if no database setting exists
+
 ### Debugging ETL Issues
-1. Check `REWIND_DATA_PATH` points to correct directory
-2. Verify JSON files exist in project subdirectories
+1. Check data path is configured via Settings UI or `REWIND_DATA_PATH` in `.env`
+2. Verify JSONL files (`.jsonl`) exist in project subdirectories
 3. Run `pnpm etl:run` with console output to see processing logs
 4. Use `pnpm db:studio` to inspect database tables directly
-5. Check `processed_files` table to see which files were processed and when
+5. Check `processedFiles` table to see which files were processed and when
 6. Set `LOG_LEVEL=debug` in `.env` for detailed logging output
+7. Watch real-time ETL progress in the web UI using the "Import Data" button on the home page
 
 ## Logging
 
