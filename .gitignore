@@ -4,3 +4,10 @@
 # Docker volumes
 containers/gitea/gitea/
 containers/gitea/postgres/
+
+# OpenTofu / Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+.terraform.lock.hcl
