@@ -6,11 +6,10 @@
 sudo snap install --classic opentofu
 ```
 
-## [Ansible](
-https://docs.ansible.com/projects/ansible/latest/installation_guide/intro_installation.html)
+## [Ansible](https://docs.ansible.com/projects/ansible/latest/installation_guide/intro_installation.html)
 
 
-### Pipx (prerequisite)
+### [Pipx](https://github.com/pypa/pipx) (Prerequisite)
 
 ```sh
 sudo apt update

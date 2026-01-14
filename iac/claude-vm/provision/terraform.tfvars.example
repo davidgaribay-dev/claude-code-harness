@@ -1,0 +1,40 @@
+# Proxmox connection settings
+proxmox_endpoint = "https://192.168.1.1:8006/"
+proxmox_node     = "pve"
+
+# API token format: user@realm!token-name=token-secret
+# Create token in Proxmox: Datacenter > Permissions > API Tokens
+proxmox_api_token = "root@pam!terraform=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# Template to clone
+template_id = 900
+
+# New VM settings
+vm_name      = "ubuntu-server-01"
+# vm_id      = 101  # Uncomment to set specific VM ID
+datastore_id = "local-lvm"
+
+# Hardware
+cpu_cores = 2
+memory    = 2048
+
+# Network
+network_bridge = "vmbr0"
+
+# Cloud-init network configuration
+# Option 1: DHCP
+ip_address = "dhcp"
+
+# Option 2: Static IP (uncomment and configure)
+# ip_address  = "192.168.1.100/24"
+# gateway     = "192.168.1.1"
+
+dns_servers = ["1.1.1.1", "1.0.0.1"]
+
+# Cloud-init user
+cloud_init_user = "ubuntu"
+
+# SSH key - leave empty to use ~/.ssh/id_rsa.pub
+ssh_public_key = ""
+# Or specify path to key file
+# ssh_public_key_file = "~/.ssh/id_ed25519.pub"
