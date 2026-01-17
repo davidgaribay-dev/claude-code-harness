@@ -81,6 +81,31 @@ The playbook applies security hardening via `devsec.hardening`:
 - fail2ban (SSH brute-force protection)
 - Automatic security updates
 
+### Claude Code Sandbox Mode
+
+The VM is configured with Claude Code sandbox mode enabled by default. Sandbox mode provides OS-level filesystem and network isolation using `bubblewrap` on Linux.
+
+**Sandbox Settings Applied:**
+- `enabled: true` - Sandbox is active
+- `autoAllowBashIfSandboxed: true` - Bash commands auto-approved within sandbox
+- `allowUnsandboxedCommands: false` - Disables escape hatch for unsandboxed commands
+- `excludedCommands: ["docker", "docker-compose"]` - Docker runs outside sandbox (incompatible)
+- `enableWeakerNestedSandbox: false` - Maintains full sandbox strength
+
+**Permission Deny Rules:**
+- Blocks reading sensitive home directories: `~/.ssh/**`, `~/.aws/**`, `~/.gnupg/**`, `~/.config/gh/**`
+- Blocks reading credential files: `.env`, `.env.*`, `~/.netrc`, `~/.gitconfig`
+- Blocks reading project secrets: `./secrets/**`
+- Blocks `curl` and `wget` bash commands to prevent data exfiltration
+
+**Additional Settings:**
+- `cleanupPeriodDays: 14` - Auto-cleanup of old sessions
+- `respectGitignore: true` - Honors `.gitignore` in file picker
+- `autoUpdatesChannel: "stable"` - Uses stable release channel
+- `defaultMode: "acceptEdits"` - Auto-accepts file edits
+
+For more information, see the [Claude Code Sandboxing Documentation](https://code.claude.com/docs/en/sandboxing).
+
 ## Usage
 
 ```sh

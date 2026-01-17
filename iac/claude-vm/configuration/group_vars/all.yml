@@ -91,6 +91,7 @@ dev_packages:
   - apt-transport-https
   - software-properties-common
   - build-essential
+  - bubblewrap  # Required for Claude Code sandbox mode on Linux
 
 # Docker configuration (geerlingguy.docker role)
 docker_users:

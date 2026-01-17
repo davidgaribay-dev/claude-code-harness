@@ -1,6 +1,36 @@
 {
+  "model": "sonnet",
   "includeCoAuthoredBy": false,
   "env": {
     "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1"
-  }
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "allowUnsandboxedCommands": false,
+    "excludedCommands": [
+      "docker",
+      "docker-compose"
+    ],
+    "enableWeakerNestedSandbox": false
+  },
+  "permissions": {
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(./secrets/**)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.config/gh/**)",
+      "Read(~/.netrc)",
+      "Read(~/.gitconfig)",
+      "Bash(curl:*)",
+      "Bash(wget:*)"
+    ],
+    "defaultMode": "acceptEdits"
+  },
+  "cleanupPeriodDays": 14,
+  "respectGitignore": true,
+  "autoUpdatesChannel": "stable"
 }

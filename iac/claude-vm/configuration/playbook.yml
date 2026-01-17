@@ -317,4 +317,13 @@
         src: files/claude.json
         dest: "{{ dev_user_home }}/.claude.json"
         mode: '0644'
-        force: false
+
+    - name: Add Context7 MCP server
+      ansible.builtin.shell: |
+        source {{ dev_user_home }}/.nvm/nvm.sh
+        claude mcp add context7 -- npx -y @upstash/context7-mcp
+      args:
+        executable: /bin/bash
+      register: mcp_add_result
+      changed_when: mcp_add_result.rc == 0
+      failed_when: false
