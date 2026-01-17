@@ -9,10 +9,11 @@ proxmox_api_token = "root@pam!terraform=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 # Template to clone
 template_id = 900
 
-# New VM settings
-vm_name      = "ubuntu-server-01"
-# vm_id      = 101  # Uncomment to set specific VM ID
+# Datastore for VM disks
 datastore_id = "local-lvm"
+
+# VMs to create - managed by deploy.sh, do not edit manually
+vms = {}
 
 # Hardware
 cpu_cores = 2
@@ -33,8 +34,3 @@ dns_servers = ["1.1.1.1", "1.0.0.1"]
 
 # Cloud-init user
 cloud_init_user = "ubuntu"
-
-# SSH key - leave empty to use ~/.ssh/id_rsa.pub
-ssh_public_key = ""
-# Or specify path to key file
-# ssh_public_key_file = "~/.ssh/id_ed25519.pub"

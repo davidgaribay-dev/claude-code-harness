@@ -1,7 +1,4 @@
 locals {
-  ssh_key = var.ssh_public_key != "" ? var.ssh_public_key : (
-    fileexists(pathexpand(var.ssh_public_key_file)) ? trimspace(file(pathexpand(var.ssh_public_key_file))) : ""
-  )
   use_dhcp = var.ip_address == "dhcp"
 }
 
@@ -12,6 +9,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
   node_name   = var.proxmox_node
   description = "Cloned from template ${var.template_id} via OpenTofu"
   vm_id       = each.value.vm_id
+  tags        = ["claude-dev", "managed-by-opentofu"]
 
   clone {
     vm_id        = var.template_id
@@ -20,7 +18,6 @@ resource "proxmox_virtual_environment_vm" "vm" {
     retries      = 3
   }
 
-  # VirtIO SCSI Single controller for best disk performance
   scsi_hardware = "virtio-scsi-single"
 
   cpu {
@@ -33,8 +30,6 @@ resource "proxmox_virtual_environment_vm" "vm" {
     dedicated = coalesce(each.value.memory, var.memory)
   }
 
-  # Disk configuration for performance
-  # Note: When cloning, this resizes/reconfigures the cloned disk
   disk {
     datastore_id = var.datastore_id
     interface    = "scsi0"
@@ -44,6 +39,8 @@ resource "proxmox_virtual_environment_vm" "vm" {
     discard      = var.ssd_emulation ? "on" : "ignore"
     file_format  = "raw"
   }
+
+  serial_device {}
 
   initialization {
     datastore_id = var.datastore_id
@@ -61,7 +58,6 @@ resource "proxmox_virtual_environment_vm" "vm" {
 
     user_account {
       username = var.cloud_init_user
-      keys     = local.ssh_key != "" ? [local.ssh_key] : []
     }
   }
 
@@ -79,7 +75,6 @@ resource "proxmox_virtual_environment_vm" "vm" {
   stop_on_destroy = true
 
   lifecycle {
-    # Prevents cloud-init from re-running on subsequent applies
     ignore_changes = [
       initialization,
     ]

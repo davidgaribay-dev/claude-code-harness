@@ -11,3 +11,7 @@ containers/gitea/postgres/
 *.tfvars
 .terraform/
 .terraform.lock.hcl
+
+# Ansible
+**/inventory/hosts.json
+/tmp/ansible_facts_cache/
