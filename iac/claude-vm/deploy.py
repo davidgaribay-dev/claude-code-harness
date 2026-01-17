@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -307,6 +308,12 @@ class Ansible:
     def run_playbook(self, skip_hardening: bool = False) -> None:
         """Run the Ansible playbook."""
         cmd = ["ansible-playbook", "playbook.yml", "-v"]
+
+        # Pass GitHub token if set in environment
+        gh_token = os.environ.get("ANSIBLE_GH_TOKEN", "")
+        if gh_token:
+            log.info("Passing GitHub token to playbook")
+            cmd.extend(["-e", f"gh_token={gh_token}"])
 
         if skip_hardening:
             log.warn("Skipping hardening roles")

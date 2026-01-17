@@ -32,26 +32,50 @@ ssh_allow_agent_forwarding: true
 ssh_allow_tcp_forwarding: true
 
 # Key-based auth only
-ssh_password_authentication: false
-ssh_challenge_response_auth: false
+ssh_server_password_login: false
+ssh_challengeresponseauthentication: false
 
-# Modern crypto settings
-ssh_kex_algorithms:
+# Modern crypto settings for Ubuntu 24.04 / OpenSSH 9.x
+# Note: role uses ssh_kex, NOT ssh_kex_algorithms
+ssh_kex:
+  - sntrup761x25519-sha512@openssh.com
+  - curve25519-sha256
   - curve25519-sha256@libssh.org
-  - diffie-hellman-group-exchange-sha256
+  - diffie-hellman-group18-sha512
+  - diffie-hellman-group16-sha512
 
 ssh_ciphers:
   - chacha20-poly1305@openssh.com
   - aes256-gcm@openssh.com
   - aes128-gcm@openssh.com
+  - aes256-ctr
+  - aes192-ctr
+  - aes128-ctr
 
 ssh_macs:
   - hmac-sha2-512-etm@openssh.com
   - hmac-sha2-256-etm@openssh.com
+  - umac-128-etm@openssh.com
+
+# Host key algorithms for Ubuntu 24.04
+ssh_host_key_algorithms:
+  - ssh-ed25519
+  - rsa-sha2-512
+  - rsa-sha2-256
 
 # Client alive settings
 ssh_client_alive_interval: 300
-ssh_client_alive_count_max: 3
+ssh_client_alive_count: 3
+
+# Ubuntu 24.04 / OpenSSH 9.x compatibility settings
+ssh_use_pam: true                          # Required for proper auth on Ubuntu
+sftp_enabled: true                         # Enable SFTP (Ansible uses it by default)
+ssh_print_pam_motd: false                  # Disable duplicate MOTD
+ssh_print_last_log: true                   # Show last login info
+
+# Don't regenerate host keys (can cause issues on Ubuntu 24.04)
+ssh_server_hardening: true
+sshd_moduli_minimum: 3072
 
 # Development Environment Settings
 

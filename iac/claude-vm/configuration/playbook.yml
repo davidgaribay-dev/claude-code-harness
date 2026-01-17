@@ -40,16 +40,137 @@
         path: /run/sshd
         state: directory
         mode: '0755'
+        owner: root
+        group: root
+
+    # Ensure OpenSSH is updated before hardening (fixes socket-activation issues)
+    # Minimum recommended version: 1:9.6p1-3ubuntu13.8
+    - name: Update OpenSSH to latest version
+      ansible.builtin.apt:
+        name:
+          - openssh-server
+          - openssh-client
+        state: latest
+
+    # Ubuntu 24.04 uses socket activation by default which conflicts with ssh_hardening
+    # See: https://github.com/dev-sec/ansible-collection-hardening/issues/854
+    # See: https://discourse.ubuntu.com/t/sshd-now-uses-socket-based-activation-ubuntu-22-10-and-later/30189
+    #
+    # Best practice approach from DevSec hardening:
+    # 1. Remove all socket-related config files
+    # 2. Stop, disable, and MASK ssh.socket (mask prevents any re-activation)
+    # 3. Reload systemd
+    # 4. Enable and start ssh.service
+
+    - name: Remove socket activation configuration files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/ssh.service.d/00-socket.conf
+        - /etc/systemd/system/ssh.socket.d/addresses.conf
+        - /etc/systemd/system/ssh.service.requires/ssh.socket
+        - /etc/systemd/system/sockets.target.wants/ssh.socket
+
+    - name: Stop, disable and mask ssh.socket
+      ansible.builtin.systemd:
+        name: ssh.socket
+        state: stopped
+        enabled: false
+        masked: true
+      ignore_errors: true
+
+    - name: Reload systemd daemon after socket config removal
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Enable and start traditional SSH service
+      ansible.builtin.systemd:
+        name: ssh.service
+        enabled: true
+        state: started
 
   roles:
     # OS-level hardening (file permissions, kernel params, etc.)
     - role: devsec.hardening.os_hardening
-
-    # SSH hardening (secure config, key-based auth, etc.)
-    - role: devsec.hardening.ssh_hardening
+      tags: [hardening]
 
     # Docker installation
     - role: geerlingguy.docker
+
+  # Run tasks before SSH hardening to flush all handlers
+  post_tasks:
+    - name: Flush handlers before SSH hardening
+      ansible.builtin.meta: flush_handlers
+
+    - name: Wait for SSH connection to stabilize after Docker changes
+      ansible.builtin.wait_for_connection:
+        delay: 5
+        timeout: 60
+
+# Separate play for SSH hardening to avoid connection reset issues with Docker
+- name: Apply SSH hardening
+  hosts: all
+  become: true
+  gather_facts: false
+  tags: [hardening]
+
+  pre_tasks:
+    - name: Ensure /run/sshd still exists
+      ansible.builtin.file:
+        path: /run/sshd
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+
+    # Verify socket activation is still disabled before ssh_hardening runs
+    - name: Verify ssh.socket is stopped, disabled and masked
+      ansible.builtin.systemd:
+        name: ssh.socket
+        state: stopped
+        enabled: false
+        masked: true
+      ignore_errors: true
+
+    - name: Ensure ssh.service is running before hardening
+      ansible.builtin.systemd:
+        name: ssh.service
+        state: started
+        enabled: true
+
+  roles:
+    - role: devsec.hardening.ssh_hardening
+
+  post_tasks:
+    # Debug: Test sshd config and show error if invalid
+    - name: Test sshd configuration validity
+      ansible.builtin.command: sshd -t
+      register: sshd_test
+      ignore_errors: true
+      changed_when: false
+
+    - name: Show sshd config test result
+      ansible.builtin.debug:
+        msg: "sshd -t output: {{ sshd_test.stderr | default('OK') }}"
+      when: sshd_test.rc != 0
+
+    - name: Show generated sshd_config if test failed
+      ansible.builtin.command: cat /etc/ssh/sshd_config
+      register: sshd_config_content
+      when: sshd_test.rc != 0
+      changed_when: false
+
+    - name: Display sshd_config content
+      ansible.builtin.debug:
+        msg: "{{ sshd_config_content.stdout_lines }}"
+      when: sshd_test.rc != 0 and sshd_config_content is defined
+
+# Continue with remaining configuration after SSH hardening
+- name: Complete system configuration
+  hosts: all
+  become: true
+  gather_facts: false
 
   tasks:
     - name: Install development packages
@@ -282,23 +403,31 @@
         line: '[ -f "$HOME/.local/bin/env" ] && source "$HOME/.local/bin/env"'
         state: present
 
-    - name: Configure GitHub CLI token from environment
-      ansible.builtin.lineinfile:
-        path: "{{ dev_user_home }}/.bashrc"
-        line: '[ -n "$GH_TOKEN" ] && export GH_TOKEN'
-        state: present
-      when: gh_token is defined and gh_token | length > 0
-
-    - name: Setup gh git credential helper
+    - name: Authenticate gh CLI with token (persists to ~/.config/gh/hosts.yml)
       ansible.builtin.shell: |
-        gh auth setup-git
+        printf '%s' "{{ gh_token }}" | gh auth login --with-token
       args:
         executable: /bin/bash
-      environment:
-        GH_TOKEN: "{{ gh_token }}"
+        creates: "{{ dev_user_home }}/.config/gh/hosts.yml"
+      no_log: true
       when: gh_token is defined and gh_token | length > 0
-      register: gh_setup_git
-      changed_when: gh_setup_git.rc == 0
+
+    - name: Setup gh as git credential helper
+      ansible.builtin.command: gh auth setup-git
+      when: gh_token is defined and gh_token | length > 0
+      changed_when: false
+
+    - name: Verify gh authentication
+      ansible.builtin.command: gh auth status
+      register: gh_auth_status
+      changed_when: false
+      failed_when: false
+      when: gh_token is defined and gh_token | length > 0
+
+    - name: Display gh auth status
+      ansible.builtin.debug:
+        var: gh_auth_status.stdout_lines
+      when: gh_token is defined and gh_token | length > 0 and gh_auth_status is defined
 
     - name: Create Claude Code config directory
       ansible.builtin.file:
