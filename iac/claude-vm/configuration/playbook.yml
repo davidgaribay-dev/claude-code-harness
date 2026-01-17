@@ -98,9 +98,8 @@
     # Docker installation
     - role: geerlingguy.docker
 
-  # Run tasks before SSH hardening to flush all handlers
   post_tasks:
-    - name: Flush handlers before SSH hardening
+    - name: Flush handlers after roles
       ansible.builtin.meta: flush_handlers
 
     - name: Wait for SSH connection to stabilize after Docker changes
@@ -108,65 +107,8 @@
         delay: 5
         timeout: 60
 
-# Separate play for SSH hardening to avoid connection reset issues with Docker
-- name: Apply SSH hardening
-  hosts: all
-  become: true
-  gather_facts: false
-  tags: [hardening]
 
-  pre_tasks:
-    - name: Ensure /run/sshd still exists
-      ansible.builtin.file:
-        path: /run/sshd
-        state: directory
-        mode: '0755'
-        owner: root
-        group: root
-
-    # Verify socket activation is still disabled before ssh_hardening runs
-    - name: Verify ssh.socket is stopped, disabled and masked
-      ansible.builtin.systemd:
-        name: ssh.socket
-        state: stopped
-        enabled: false
-        masked: true
-      ignore_errors: true
-
-    - name: Ensure ssh.service is running before hardening
-      ansible.builtin.systemd:
-        name: ssh.service
-        state: started
-        enabled: true
-
-  roles:
-    - role: devsec.hardening.ssh_hardening
-
-  post_tasks:
-    # Debug: Test sshd config and show error if invalid
-    - name: Test sshd configuration validity
-      ansible.builtin.command: sshd -t
-      register: sshd_test
-      ignore_errors: true
-      changed_when: false
-
-    - name: Show sshd config test result
-      ansible.builtin.debug:
-        msg: "sshd -t output: {{ sshd_test.stderr | default('OK') }}"
-      when: sshd_test.rc != 0
-
-    - name: Show generated sshd_config if test failed
-      ansible.builtin.command: cat /etc/ssh/sshd_config
-      register: sshd_config_content
-      when: sshd_test.rc != 0
-      changed_when: false
-
-    - name: Display sshd_config content
-      ansible.builtin.debug:
-        msg: "{{ sshd_config_content.stdout_lines }}"
-      when: sshd_test.rc != 0 and sshd_config_content is defined
-
-# Continue with remaining configuration after SSH hardening
+# System configuration (UFW, fail2ban, etc.)
 - name: Complete system configuration
   hosts: all
   become: true
@@ -449,10 +391,138 @@
 
     - name: Add Context7 MCP server
       ansible.builtin.shell: |
+        export PATH="{{ dev_user_home }}/.local/bin:$PATH"
         source {{ dev_user_home }}/.nvm/nvm.sh
-        claude mcp add context7 -- npx -y @upstash/context7-mcp
+        claude mcp add context7 --scope user -- npx -y @upstash/context7-mcp
       args:
         executable: /bin/bash
       register: mcp_add_result
       changed_when: mcp_add_result.rc == 0
       failed_when: false
+
+    - name: Add Playwright MCP server
+      ansible.builtin.shell: |
+        export PATH="{{ dev_user_home }}/.local/bin:$PATH"
+        source {{ dev_user_home }}/.nvm/nvm.sh
+        claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest
+      args:
+        executable: /bin/bash
+      register: playwright_mcp_result
+      changed_when: playwright_mcp_result.rc == 0
+
+    - name: Display Playwright MCP result
+      ansible.builtin.debug:
+        msg: "Playwright MCP stdout: {{ playwright_mcp_result.stdout | default('') }} stderr: {{ playwright_mcp_result.stderr | default('') }}"
+      when: playwright_mcp_result.rc != 0
+
+
+# SSH hardening runs LAST to avoid connection issues blocking other tasks
+- name: Apply SSH hardening (final step)
+  hosts: all
+  become: true
+  gather_facts: false
+  tags: [hardening]
+
+  pre_tasks:
+    - name: Ensure /run/sshd still exists
+      ansible.builtin.file:
+        path: /run/sshd
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+
+    # Verify socket activation is still disabled before ssh_hardening runs
+    - name: Verify ssh.socket is stopped, disabled and masked
+      ansible.builtin.systemd:
+        name: ssh.socket
+        state: stopped
+        enabled: false
+        masked: true
+      ignore_errors: true
+
+    # Remove any remaining socket activation config that may have been recreated
+    - name: Remove socket activation configuration files (second pass)
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/ssh.service.d/00-socket.conf
+        - /etc/systemd/system/ssh.socket.d/addresses.conf
+        - /etc/systemd/system/ssh.service.requires/ssh.socket
+
+    - name: Reload systemd daemon
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    # Check what's holding port 22 for debugging
+    - name: Check what process is using port 22
+      ansible.builtin.shell: ss -tlnp | grep ':22' || true
+      register: port_22_check
+      changed_when: false
+
+    - name: Display port 22 usage
+      ansible.builtin.debug:
+        msg: "Port 22 status: {{ port_22_check.stdout | default('Port 22 is free') }}"
+
+    # Test sshd config before attempting to start
+    - name: Test sshd configuration validity before starting
+      ansible.builtin.command: sshd -t
+      register: sshd_pretest
+      ignore_errors: true
+      changed_when: false
+
+    - name: Display sshd config error if test failed
+      ansible.builtin.debug:
+        msg: "sshd -t failed: {{ sshd_pretest.stderr }}"
+      when: sshd_pretest.rc != 0
+
+    - name: Fail if sshd config is invalid
+      ansible.builtin.fail:
+        msg: "sshd configuration is invalid. Check /etc/ssh/sshd_config. Error: {{ sshd_pretest.stderr }}"
+      when: sshd_pretest.rc != 0
+
+    # Check if sshd is already running - if so, we don't need to start it
+    - name: Check if sshd is already running
+      ansible.builtin.shell: pgrep -x sshd > /dev/null && echo "running" || echo "stopped"
+      register: sshd_running
+      changed_when: false
+
+    - name: Display sshd status
+      ansible.builtin.debug:
+        msg: "sshd is {{ sshd_running.stdout }}"
+
+    # Only try to start if not already running
+    - name: Start ssh.service if not running
+      ansible.builtin.systemd:
+        name: ssh.service
+        state: started
+        enabled: true
+      when: sshd_running.stdout == "stopped"
+
+  roles:
+    - role: devsec.hardening.ssh_hardening
+
+  post_tasks:
+    # Debug: Test sshd config and show error if invalid
+    - name: Test sshd configuration validity
+      ansible.builtin.command: sshd -t
+      register: sshd_test
+      ignore_errors: true
+      changed_when: false
+
+    - name: Show sshd config test result
+      ansible.builtin.debug:
+        msg: "sshd -t output: {{ sshd_test.stderr | default('OK') }}"
+      when: sshd_test.rc != 0
+
+    - name: Show generated sshd_config if test failed
+      ansible.builtin.command: cat /etc/ssh/sshd_config
+      register: sshd_config_content
+      when: sshd_test.rc != 0
+      changed_when: false
+
+    - name: Display sshd_config content
+      ansible.builtin.debug:
+        msg: "{{ sshd_config_content.stdout_lines }}"
+      when: sshd_test.rc != 0 and sshd_config_content is defined
