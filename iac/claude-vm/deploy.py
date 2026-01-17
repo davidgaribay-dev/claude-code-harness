@@ -156,11 +156,12 @@ class OpenTofu:
             cwd=self.provision_dir,
         )
 
-    def apply(self) -> None:
+    def apply(self, vms_var: dict) -> None:
         """Apply the planned changes."""
         log.info("Applying infrastructure changes (parallelism=1 for Proxmox stability)...")
+        vms_json = json.dumps(vms_var)
         run_command(
-            ["tofu", "apply", "-parallelism=1", "tfplan"],
+            ["tofu", "apply", "-parallelism=1", f"-var=vms={vms_json}", "tfplan"],
             cwd=self.provision_dir,
         )
         # Clean up plan file
@@ -407,7 +408,7 @@ def main() -> None:
         log.info("=== Phase 1: Provisioning ===")
         tofu.init()
         tofu.plan(vms_var)
-        tofu.apply()
+        tofu.apply(vms_var)
         tofu.export_inventory()
     else:
         log.warn("Skipping provisioning phase")

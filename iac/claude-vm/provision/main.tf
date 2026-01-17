@@ -63,7 +63,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
 
   network_device {
     bridge  = var.network_bridge
-    vlan_id = coalesce(each.value.vlan_id, var.vlan_id)
+    vlan_id = try(coalesce(each.value.vlan_id, var.vlan_id), null)
     model   = "virtio"
   }
 
