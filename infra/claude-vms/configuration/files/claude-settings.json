@@ -48,6 +48,18 @@
     ],
     "defaultMode": "acceptEdits"
   },
+  "extraKnownMarketplaces": {
+    "dg-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "davidgaribay-dev/dg-marketplace"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "worktree@dg-marketplace": true,
+    "git-workflow@dg-marketplace": true
+  },
   "hooks": {
     "PreToolUse": [
       {
