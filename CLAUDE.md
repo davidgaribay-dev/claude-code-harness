@@ -4,104 +4,132 @@ This file provides guidance to Claude Code when working with this repository.
 
 ## Repository Overview
 
-This is a personal development environment configuration repository containing:
-- Infrastructure as Code (IaC) for provisioning development VMs
-- Docker Compose configurations for self-hosted services
+Claude Code Harness is a monorepo containing:
+
+- **infra/** - Infrastructure as Code for deploying Claude development environments
+- **marketplace/** - Claude Code plugin marketplace (git submodule)
+- **rewind/** - Conversation analytics web application
 
 ## Directory Structure
 
 ```
-dev-setup/
-├── iac/                    # Infrastructure as Code
-│   └── claude-vm/          # Claude development VM provisioning
-│       ├── deploy.py       # Main deployment script
-│       ├── provision/      # OpenTofu/Terraform configs
-│       └── configuration/  # Ansible playbooks and configs
-└── vms/                    # Self-hosted service configurations
-    ├── gitea-vm/           # Gitea Git server
-    └── services-vm/        # Various services (Baserow, Draw.io, Plane)
+claude-code-harness/
+├── infra/                      # Infrastructure as Code
+│   ├── orchestration/          # Python CLI (harness)
+│   ├── neo4j/                  # Neo4j VM provisioning
+│   ├── plane/                  # Plane VM provisioning
+│   └── claude-vms/             # Claude VM provisioning
+├── marketplace/                # Git submodule → dg-marketplace
+│   ├── .claude-plugin/         # Marketplace manifest
+│   └── plugins/                # Individual plugins
+│       ├── worktree/
+│       └── git-workflow/
+└── rewind/                     # Conversation analytics app
+    ├── packages/
+    │   ├── api/                # Hono API server
+    │   ├── web/                # React Router frontend
+    │   └── shared/             # Shared types
+    └── docker-compose.yml
 ```
 
 ## Key Technologies
 
-- **OpenTofu/Terraform**: VM provisioning on Proxmox VE
-- **Ansible**: Configuration management and security hardening
-- **Docker Compose**: Service container orchestration
-
-## Claude VM (iac/claude-vm/)
-
-The claude-vm directory contains automation for provisioning secure development VMs with:
-
-### Pre-installed Tools
-- Claude Code CLI with sandbox mode enabled
-- Node.js (via NVM) with pnpm
-- Python tooling (UV)
-- Docker
-- GitHub CLI (gh)
-
-### MCP Servers (Pre-configured)
-- **Context7**: Library documentation lookup (`npx -y @upstash/context7-mcp`)
-- **Playwright**: Browser automation (`npx -y @playwright/mcp@latest`)
-
-### Security Features
-- OS hardening via devsec.hardening
-- SSH hardening (key-only auth, modern ciphers)
-- UFW firewall (deny incoming by default)
-- fail2ban for brute-force protection
-- Claude Code sandbox mode with permission restrictions
-
-### Deployment Commands
-```bash
-cd iac/claude-vm
-
-# Deploy a VM
-./deploy.py
-
-# Deploy multiple VMs
-./deploy.py -c 3
-
-# Skip SSH hardening (faster, for iteration)
-./deploy.py --skip-hardening
-
-# Destroy VMs
-./deploy.py --destroy
-```
-
-## Self-Hosted Services (vms/)
-
-Docker Compose configurations for various services. Each service directory contains:
-- `docker-compose.yml` - Container definitions
-- `README.md` - Service-specific documentation
-
-### Services
-- **Gitea**: Self-hosted Git with CI/CD
-- **Baserow**: No-code database
-- **Draw.io**: Diagramming tool
-- **Plane**: Project management
+- **Infrastructure**: OpenTofu, Ansible, Proxmox VE
+- **Rewind App**: React Router, TypeScript, Hono, Neo4j
+- **Plugins**: Claude Code plugin format with skills/commands
 
 ## Common Tasks
 
-### Adding a New MCP Server to Claude VM
-Edit `iac/claude-vm/configuration/playbook.yml` and add a new task in the "Setup development environment for user" play:
-```yaml
-- name: Add <name> MCP server
-  ansible.builtin.shell: |
-    export PATH="{{ dev_user_home }}/.local/bin:$PATH"
-    source {{ dev_user_home }}/.nvm/nvm.sh
-    claude mcp add <name> --scope user -- npx -y <package>
-  args:
-    executable: /bin/bash
+### Infrastructure (infra/)
+
+```bash
+cd infra/orchestration
+uv sync --dev
+
+# Deploy all components
+uv run harness all -c 2
+
+# Deploy individual components
+uv run harness neo4j
+uv run harness plane
+uv run harness vms -c 3
+
+# Check status
+uv run harness status
+
+# Destroy
+uv run harness all --destroy
 ```
 
-### Updating Ansible Variables
-Edit `iac/claude-vm/configuration/group_vars/all.yml` for:
+### Rewind App (rewind/)
+
+```bash
+cd rewind
+pnpm install
+
+# Development
+pnpm dev
+
+# Production (Docker)
+docker-compose up -d
+```
+
+### Marketplace Submodule
+
+```bash
+# Update submodule
+git submodule update --remote marketplace
+
+# Work on marketplace
+cd marketplace
+# make changes
+git add . && git commit -m "feat: ..."
+git push
+cd ..
+git add marketplace && git commit -m "chore: update marketplace submodule"
+```
+
+## Plugin Development
+
+Plugins in `marketplace/plugins/` follow this structure:
+
+```
+plugin-name/
+├── .claude-plugin/
+│   └── plugin.json       # Plugin manifest (name, description, version)
+├── commands/             # Slash commands (markdown files)
+│   └── command-name.md
+├── skills/               # Agent skills
+│   └── skill-name/
+│       └── SKILL.md
+└── scripts/              # Supporting scripts
+```
+
+## Configuration Files
+
+### Claude VM Settings
+
+The file `infra/claude-vms/configuration/files/claude-settings.json` defines:
+- Enabled plugins (marketplace + official LSP plugins)
+- MCP permission allow/deny lists
+- Sandbox configuration
+- Hooks (PreToolUse, etc.)
+
+### Ansible Variables
+
+Edit `infra/claude-vms/configuration/group_vars/all.yml` for:
 - Development packages to install
 - Git configuration
-- Tool versions (NVM, etc.)
+- Tool versions
 - Security hardening settings
 
-### Updating Terraform Variables
-Edit `iac/claude-vm/provision/terraform.tfvars` for:
-- Proxmox endpoint and node
-- VM resources (CPU, memory)
-- Network configuration
+## Environment Variables
+
+| Variable | Purpose | Component |
+|----------|---------|-----------|
+| `TF_VAR_proxmox_api_token` | Proxmox API authentication | All infra |
+| `NEO4J_ADMIN_PASSWORD` | Neo4j initial password | Neo4j |
+| `NEO4J_PASSWORD` | Neo4j MCP connection | Claude VMs |
+| `ANSIBLE_GH_TOKEN` | GitHub CLI auth | Claude VMs |
+
+See `infra/README.md` for complete list.
