@@ -1,0 +1,189 @@
+---
+# Play 1: System preparation and Docker installation
+- name: Setup Neo4j database server with Docker
+  hosts: all
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Wait for cloud-init to complete
+      ansible.builtin.command: cloud-init status --wait
+      changed_when: false
+      failed_when: cloud_init_result.rc not in [0, 2]
+      register: cloud_init_result
+      timeout: 300
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Upgrade all packages
+      ansible.builtin.apt:
+        upgrade: dist
+        autoremove: true
+
+    - name: Install prerequisites
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - software-properties-common
+          - python3-pip
+          - python3-apt
+        state: present
+
+    - name: Configure sysctl for Docker networking
+      ansible.posix.sysctl:
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+        sysctl_set: true
+        state: present
+        reload: true
+      loop: "{{ sysctl_overwrite | dict2items }}"
+
+  roles:
+    - role: geerlingguy.docker
+
+  post_tasks:
+    - name: Flush handlers after Docker role
+      ansible.builtin.meta: flush_handlers
+
+    - name: Wait for Docker to be ready
+      ansible.builtin.command: docker info
+      changed_when: false
+      register: docker_info
+      until: docker_info.rc == 0
+      retries: 5
+      delay: 5
+
+
+# Play 2: Deploy Neo4j container with Docker Compose
+- name: Deploy Neo4j with Docker Compose
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Create Neo4j Docker directory
+      ansible.builtin.file:
+        path: "{{ neo4j_docker_dir }}"
+        state: directory
+        owner: "{{ neo4j_user }}"
+        group: "{{ neo4j_user }}"
+        mode: '0755'
+
+    - name: Deploy Docker Compose file
+      ansible.builtin.template:
+        src: files/docker-compose.yml.j2
+        dest: "{{ neo4j_docker_dir }}/docker-compose.yml"
+        owner: "{{ neo4j_user }}"
+        group: "{{ neo4j_user }}"
+        mode: '0644'
+      notify: Restart Neo4j container
+
+    - name: Start Neo4j container
+      ansible.builtin.command:
+        cmd: docker compose up -d
+        chdir: "{{ neo4j_docker_dir }}"
+      register: compose_result
+      changed_when: "'Started' in compose_result.stderr or 'Created' in compose_result.stderr"
+
+    - name: Display compose output
+      ansible.builtin.debug:
+        var: compose_result
+        verbosity: 1
+
+  handlers:
+    - name: Restart Neo4j container
+      ansible.builtin.command:
+        cmd: docker compose up -d --force-recreate
+        chdir: "{{ neo4j_docker_dir }}"
+
+
+# Play 3: Configure firewall
+- name: Configure firewall
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Install UFW
+      ansible.builtin.apt:
+        name: ufw
+        state: present
+
+    - name: Allow SSH through UFW
+      community.general.ufw:
+        rule: allow
+        name: OpenSSH
+
+    - name: Allow Neo4j Bolt from internal subnet
+      community.general.ufw:
+        rule: allow
+        port: "{{ neo4j_bolt_port }}"
+        proto: tcp
+        src: "{{ neo4j_allowed_subnet }}"
+
+    - name: Allow Neo4j HTTP from internal subnet
+      community.general.ufw:
+        rule: allow
+        port: "{{ neo4j_http_port }}"
+        proto: tcp
+        src: "{{ neo4j_allowed_subnet }}"
+
+    - name: Enable UFW with default deny
+      community.general.ufw:
+        state: enabled
+        policy: deny
+        direction: incoming
+
+    - name: Allow outgoing traffic
+      community.general.ufw:
+        state: enabled
+        policy: allow
+        direction: outgoing
+
+
+# Play 4: Health check and verification
+- name: Final verification
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Wait for Neo4j container to be running
+      ansible.builtin.command: docker inspect {{ neo4j_container_name }} --format '{{"{{"}}.State.Running{{"}}"}}'
+      register: container_running
+      until: container_running.stdout == "true"
+      retries: 12
+      delay: 5
+      changed_when: false
+
+    - name: Wait for Neo4j container to be healthy
+      ansible.builtin.command: docker inspect {{ neo4j_container_name }} --format '{{"{{"}}.State.Health.Status{{"}}"}}'
+      register: container_health
+      until: container_health.stdout == "healthy"
+      retries: 30
+      delay: 5
+      changed_when: false
+
+    - name: Wait for Neo4j HTTP endpoint to respond
+      ansible.builtin.uri:
+        url: "http://localhost:{{ neo4j_http_port }}"
+        status_code: 200
+      register: neo4j_status
+      until: neo4j_status.status == 200
+      retries: 30
+      delay: 5
+
+    - name: Display Neo4j connection info
+      ansible.builtin.debug:
+        msg:
+          - "Neo4j is running and ready!"
+          - "Container: {{ neo4j_container_name }}"
+          - "Bolt URI: bolt://{{ neo4j_ip }}:{{ neo4j_bolt_port }}"
+          - "HTTP URI: http://{{ neo4j_ip }}:{{ neo4j_http_port }}"
+          - "Username: neo4j"

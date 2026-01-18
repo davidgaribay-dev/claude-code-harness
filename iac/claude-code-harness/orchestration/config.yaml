@@ -1,0 +1,40 @@
+# Claude Code Harness Configuration
+# Shared settings for all deployment scripts
+
+neo4j:
+  ip: "10.0.70.50"
+  bolt_port: 7687
+  http_port: 7474
+  username: "neo4j"
+  vm_id: 150
+  vm_name: "neo4j-db"
+  # password from NEO4J_PASSWORD env var
+
+plane:
+  ip: "10.0.70.70"
+  http_port: 80
+  https_port: 443
+  vm_id: 160
+  vm_name: "plane-server"
+  # secrets from PLANE_* env vars
+
+claude_vms:
+  start_id: 200
+  default_count: 1
+  prefix: "claude-dev"
+
+network:
+  subnet: "10.0.70.0/24"
+  gateway: "10.0.70.1"
+  bridge: "vmbr1"
+
+proxmox:
+  node: "pve1"
+  template_id: 100
+  datastore_id: "local-lvm"
+
+ssh:
+  user: "dmg"
+  cloud_init_user: "dmg"
+  timeout: 300
+  retry_interval: 10

@@ -1,0 +1,43 @@
+---
+# Neo4j Configuration
+
+# Neo4j version and edition
+neo4j_edition: "community"
+neo4j_version: "5"
+
+# Admin password (from environment variable for security)
+neo4j_admin_password: "{{ lookup('env', 'NEO4J_ADMIN_PASSWORD') | default('changeme', true) }}"
+
+# Network configuration
+neo4j_ip: "10.0.70.50"
+neo4j_allowed_subnet: "10.0.70.0/24"
+neo4j_bolt_port: 7687
+neo4j_http_port: 7474
+
+# User configuration
+neo4j_user: dmg
+neo4j_user_home: "/home/{{ neo4j_user }}"
+
+# Sysctl settings - enable IP forwarding for Docker
+sysctl_overwrite:
+  net.ipv4.ip_forward: 1
+  net.ipv6.conf.all.forwarding: 1
+
+# Docker configuration (geerlingguy.docker role)
+docker_users:
+  - "{{ neo4j_user }}"
+docker_install_compose_plugin: true
+docker_compose_package: docker-compose-plugin
+docker_compose_package_state: present
+
+# Neo4j Docker configuration
+neo4j_docker_dir: "{{ neo4j_user_home }}/neo4j"
+neo4j_docker_image: "neo4j:{{ neo4j_version }}-{{ neo4j_edition }}"
+neo4j_container_name: "neo4j"
+neo4j_data_volume: "neo4j_data"
+neo4j_logs_volume: "neo4j_logs"
+
+# Neo4j memory settings
+neo4j_server_memory_heap_initial_size: "512m"
+neo4j_server_memory_heap_max_size: "1G"
+neo4j_server_memory_pagecache_size: "512m"

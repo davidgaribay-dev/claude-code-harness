@@ -1,0 +1,46 @@
+---
+# Plane Configuration
+
+# User configuration
+plane_user: dmg
+plane_user_home: "/home/{{ plane_user }}"
+
+# Network configuration
+plane_ip: "10.0.70.70"
+plane_allowed_subnet: "10.0.70.0/24"
+plane_http_port: 80
+plane_https_port: 443
+plane_internal_port: 3001
+
+# Plane Docker configuration
+plane_docker_dir: "{{ plane_user_home }}/plane"
+plane_app_release: "v1.2.1"
+
+# Sysctl settings - enable IP forwarding for Docker
+sysctl_overwrite:
+  net.ipv4.ip_forward: 1
+  net.ipv6.conf.all.forwarding: 1
+
+# Docker configuration (geerlingguy.docker role)
+docker_users:
+  - "{{ plane_user }}"
+docker_install_compose_plugin: true
+docker_compose_package: docker-compose-plugin
+docker_compose_package_state: present
+
+# Plane secrets (from environment variables for security)
+# Generate with: openssl rand -hex 32
+plane_secret_key: "{{ lookup('env', 'PLANE_SECRET_KEY') | default('changeme-generate-with-openssl-rand-hex-32', true) }}"
+# Generate with: openssl rand -hex 16
+plane_live_secret_key: "{{ lookup('env', 'PLANE_LIVE_SECRET_KEY') | default('changeme-generate-with-openssl-rand-hex-16', true) }}"
+# Generate with: openssl rand -base64 24
+plane_postgres_password: "{{ lookup('env', 'PLANE_POSTGRES_PASSWORD') | default('changeme', true) }}"
+# Generate with: openssl rand -base64 24
+plane_rabbitmq_password: "{{ lookup('env', 'PLANE_RABBITMQ_PASSWORD') | default('changeme', true) }}"
+
+# MinIO/S3 credentials
+plane_minio_access_key: "{{ lookup('env', 'PLANE_MINIO_ACCESS_KEY') | default('access-key', true) }}"
+plane_minio_secret_key: "{{ lookup('env', 'PLANE_MINIO_SECRET_KEY') | default('secret-key', true) }}"
+
+# Caddy configuration
+caddy_email: "{{ lookup('env', 'CADDY_EMAIL') | default('admin@plane.local', true) }}"

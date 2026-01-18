@@ -1,0 +1,268 @@
+---
+# Play 1: System preparation and Docker installation
+- name: Setup Plane project management server with Docker
+  hosts: all
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Wait for cloud-init to complete
+      ansible.builtin.command: cloud-init status --wait
+      changed_when: false
+      failed_when: cloud_init_result.rc not in [0, 2]
+      register: cloud_init_result
+      timeout: 300
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Upgrade all packages
+      ansible.builtin.apt:
+        upgrade: dist
+        autoremove: true
+
+    - name: Install prerequisites
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - software-properties-common
+          - python3-pip
+          - python3-apt
+        state: present
+
+    - name: Configure sysctl for Docker networking
+      ansible.posix.sysctl:
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+        sysctl_set: true
+        state: present
+        reload: true
+      loop: "{{ sysctl_overwrite | dict2items }}"
+
+  roles:
+    - role: geerlingguy.docker
+
+  post_tasks:
+    - name: Flush handlers after Docker role
+      ansible.builtin.meta: flush_handlers
+
+    - name: Wait for Docker to be ready
+      ansible.builtin.command: docker info
+      changed_when: false
+      register: docker_info
+      until: docker_info.rc == 0
+      retries: 5
+      delay: 5
+
+
+# Play 2: Deploy Plane with Docker Compose
+- name: Deploy Plane with Docker Compose
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Create Plane Docker directory
+      ansible.builtin.file:
+        path: "{{ plane_docker_dir }}"
+        state: directory
+        owner: "{{ plane_user }}"
+        group: "{{ plane_user }}"
+        mode: '0755'
+
+    - name: Deploy environment file
+      ansible.builtin.template:
+        src: files/plane.env.j2
+        dest: "{{ plane_docker_dir }}/.env"
+        owner: "{{ plane_user }}"
+        group: "{{ plane_user }}"
+        mode: '0600'
+      notify: Restart Plane containers
+
+    - name: Deploy Docker Compose file
+      ansible.builtin.template:
+        src: files/docker-compose.yml.j2
+        dest: "{{ plane_docker_dir }}/docker-compose.yml"
+        owner: "{{ plane_user }}"
+        group: "{{ plane_user }}"
+        mode: '0644'
+      notify: Restart Plane containers
+
+    - name: Pull Plane Docker images
+      ansible.builtin.command:
+        cmd: docker compose pull
+        chdir: "{{ plane_docker_dir }}"
+      register: pull_result
+      changed_when: "'Pull complete' in pull_result.stdout or 'Downloaded' in pull_result.stdout"
+
+    - name: Start Plane containers
+      ansible.builtin.command:
+        cmd: docker compose up -d
+        chdir: "{{ plane_docker_dir }}"
+      register: compose_result
+      changed_when: "'Started' in compose_result.stderr or 'Created' in compose_result.stderr"
+
+    - name: Display compose output
+      ansible.builtin.debug:
+        var: compose_result
+        verbosity: 1
+
+  handlers:
+    - name: Restart Plane containers
+      ansible.builtin.command:
+        cmd: docker compose up -d --force-recreate
+        chdir: "{{ plane_docker_dir }}"
+
+
+# Play 3: Install and configure Caddy reverse proxy
+- name: Configure Caddy reverse proxy
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Install Caddy dependencies
+      ansible.builtin.apt:
+        name:
+          - debian-keyring
+          - debian-archive-keyring
+          - apt-transport-https
+          - curl
+        state: present
+
+    - name: Add Caddy GPG key
+      ansible.builtin.shell: |
+        curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+      args:
+        creates: /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+
+    - name: Set permissions on Caddy GPG key
+      ansible.builtin.file:
+        path: /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+        mode: 'o+r'
+
+    - name: Add Caddy repository source list
+      ansible.builtin.shell: |
+        curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
+      args:
+        creates: /etc/apt/sources.list.d/caddy-stable.list
+
+    - name: Set permissions on Caddy source list
+      ansible.builtin.file:
+        path: /etc/apt/sources.list.d/caddy-stable.list
+        mode: 'o+r'
+
+    - name: Install Caddy
+      ansible.builtin.apt:
+        name: caddy
+        state: present
+        update_cache: true
+
+    - name: Create Caddy log directory
+      ansible.builtin.file:
+        path: /var/log/caddy
+        state: directory
+        owner: caddy
+        group: caddy
+        mode: '0755'
+
+    - name: Deploy Caddyfile
+      ansible.builtin.template:
+        src: files/Caddyfile.j2
+        dest: /etc/caddy/Caddyfile
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Reload Caddy
+
+    - name: Enable and start Caddy service
+      ansible.builtin.systemd:
+        name: caddy
+        enabled: true
+        state: started
+
+  handlers:
+    - name: Reload Caddy
+      ansible.builtin.systemd:
+        name: caddy
+        state: reloaded
+
+
+# Play 4: Configure firewall and health check
+- name: Configure firewall and verify deployment
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Install UFW
+      ansible.builtin.apt:
+        name: ufw
+        state: present
+
+    - name: Allow SSH through UFW
+      community.general.ufw:
+        rule: allow
+        name: OpenSSH
+
+    - name: Allow HTTP from internal subnet
+      community.general.ufw:
+        rule: allow
+        port: "{{ plane_http_port }}"
+        proto: tcp
+        src: "{{ plane_allowed_subnet }}"
+
+    - name: Allow HTTPS from internal subnet
+      community.general.ufw:
+        rule: allow
+        port: "{{ plane_https_port }}"
+        proto: tcp
+        src: "{{ plane_allowed_subnet }}"
+
+    - name: Enable UFW with default deny
+      community.general.ufw:
+        state: enabled
+        policy: deny
+        direction: incoming
+
+    - name: Allow outgoing traffic
+      community.general.ufw:
+        state: enabled
+        policy: allow
+        direction: outgoing
+
+    - name: Wait for Plane proxy container to be running
+      ansible.builtin.command: docker ps --filter "name=plane-proxy" --format "{% raw %}{{.Status}}{% endraw %}"
+      register: proxy_status
+      until: "'Up' in proxy_status.stdout"
+      retries: 30
+      delay: 10
+      changed_when: false
+
+    - name: Wait for Plane API to be ready
+      ansible.builtin.uri:
+        url: "http://localhost:{{ plane_internal_port }}"
+        status_code: [200, 301, 302]
+        validate_certs: false
+      register: plane_status
+      until: plane_status.status in [200, 301, 302]
+      retries: 60
+      delay: 10
+
+    - name: Display Plane connection info
+      ansible.builtin.debug:
+        msg:
+          - "Plane is running and ready!"
+          - "HTTP URL: http://{{ plane_ip }}"
+          - "HTTPS URL: https://{{ plane_ip }}"
+          - "Internal proxy: localhost:{{ plane_internal_port }}"
+          - ""
+          - "Next steps:"
+          - "1. Visit https://{{ plane_ip }} in your browser"
+          - "2. Complete the initial setup and create an admin account"
+          - "3. Generate an API key for MCP integration"

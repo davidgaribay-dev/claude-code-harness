@@ -45,12 +45,12 @@
 
     # Ensure OpenSSH is updated before hardening (fixes socket-activation issues)
     # Minimum recommended version: 1:9.6p1-3ubuntu13.8
-    - name: Update OpenSSH to latest version
+    - name: Ensure OpenSSH is installed
       ansible.builtin.apt:
         name:
           - openssh-server
           - openssh-client
-        state: latest
+        state: present
 
     # Ubuntu 24.04 uses socket activation by default which conflicts with ssh_hardening
     # See: https://github.com/dev-sec/ansible-collection-hardening/issues/854
@@ -78,7 +78,13 @@
         state: stopped
         enabled: false
         masked: true
-      ignore_errors: true
+      register: ssh_socket_result
+      failed_when: false
+
+    - name: Log ssh.socket status if unexpected
+      ansible.builtin.debug:
+        msg: "Note: ssh.socket operation returned: {{ ssh_socket_result.msg | default('OK') }}"
+      when: ssh_socket_result is failed
 
     - name: Reload systemd daemon after socket config removal
       ansible.builtin.systemd:
@@ -433,6 +439,60 @@
         msg: "Playwright MCP stdout: {{ playwright_mcp_result.stdout | default('') }} stderr: {{ playwright_mcp_result.stderr | default('') }}"
       when: playwright_mcp_result.rc != 0
 
+    - name: Add Neo4j Cypher MCP server
+      ansible.builtin.shell: |
+        export PATH="{{ dev_user_home }}/.local/bin:$PATH"
+        source {{ dev_user_home }}/.nvm/nvm.sh
+        claude mcp add neo4j --scope user -- uvx mcp-neo4j-cypher@0.5.2 --transport stdio
+      args:
+        executable: /bin/bash
+      environment:
+        NEO4J_URI: "{{ neo4j_uri }}"
+        NEO4J_USERNAME: "{{ neo4j_username }}"
+        NEO4J_PASSWORD: "{{ neo4j_password }}"
+      register: neo4j_mcp_result
+      changed_when: neo4j_mcp_result.rc == 0
+      failed_when: false
+
+    - name: Display Neo4j MCP result
+      ansible.builtin.debug:
+        msg: "Neo4j MCP stdout: {{ neo4j_mcp_result.stdout | default('') }} stderr: {{ neo4j_mcp_result.stderr | default('') }}"
+      when: neo4j_mcp_result.rc != 0
+
+    - name: Display Neo4j connection info
+      ansible.builtin.debug:
+        msg: "Neo4j MCP configured to connect to: {{ neo4j_uri }}"
+
+    - name: Add Plane MCP server
+      ansible.builtin.shell: |
+        export PATH="{{ dev_user_home }}/.local/bin:$PATH"
+        source {{ dev_user_home }}/.nvm/nvm.sh
+        claude mcp add plane --scope user -- npx -y mcp-remote@latest {{ plane_api_url }}/api/v1/mcp
+      args:
+        executable: /bin/bash
+      environment:
+        PLANE_API_KEY: "{{ plane_api_key }}"
+        PLANE_WORKSPACE_SLUG: "{{ plane_workspace_slug }}"
+      register: plane_mcp_result
+      changed_when: plane_mcp_result.rc == 0
+      failed_when: false
+      when: plane_api_key | length > 0 and plane_workspace_slug | length > 0
+
+    - name: Display Plane MCP result
+      ansible.builtin.debug:
+        msg: "Plane MCP stdout: {{ plane_mcp_result.stdout | default('') }} stderr: {{ plane_mcp_result.stderr | default('') }}"
+      when: plane_mcp_result is defined and plane_mcp_result.rc is defined and plane_mcp_result.rc != 0
+
+    - name: Display Plane connection info
+      ansible.builtin.debug:
+        msg: "Plane MCP configured to connect to: {{ plane_api_url }}"
+      when: plane_api_key | length > 0 and plane_workspace_slug | length > 0
+
+    - name: Plane MCP skipped notice
+      ansible.builtin.debug:
+        msg: "Plane MCP skipped - PLANE_API_KEY and PLANE_WORKSPACE_SLUG not set. Configure after Plane setup."
+      when: plane_api_key | length == 0 or plane_workspace_slug | length == 0
+
 
 # SSH hardening runs LAST to avoid connection issues blocking other tasks
 - name: Apply SSH hardening (final step)
@@ -457,7 +517,13 @@
         state: stopped
         enabled: false
         masked: true
-      ignore_errors: true
+      register: ssh_socket_verify_result
+      failed_when: false
+
+    - name: Log ssh.socket verification status if unexpected
+      ansible.builtin.debug:
+        msg: "Note: ssh.socket verification returned: {{ ssh_socket_verify_result.msg | default('OK') }}"
+      when: ssh_socket_verify_result is failed
 
     # Remove any remaining socket activation config that may have been recreated
     - name: Remove socket activation configuration files (second pass)
