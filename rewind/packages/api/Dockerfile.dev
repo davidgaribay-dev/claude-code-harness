@@ -1,0 +1,23 @@
+FROM node:20-alpine
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@10 --activate
+
+WORKDIR /app
+
+# Copy workspace files
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY packages/api/package.json ./packages/api/
+COPY packages/shared/package.json ./packages/shared/
+
+# Install ALL dependencies (including devDependencies for tsx)
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY packages/api ./packages/api
+COPY packages/shared ./packages/shared
+
+EXPOSE 8429
+
+# Run in dev mode with tsx watch
+CMD ["pnpm", "--filter", "@rewind/api", "dev"]

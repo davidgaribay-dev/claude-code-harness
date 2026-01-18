@@ -1,0 +1,512 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Navigation from '@/components/Navigation.astro';
+import Footer from '@/components/Footer.astro';
+---
+
+<BaseLayout
+  title="Features - Rewind Viewer"
+  description="Explore all the powerful features of Rewind Viewer: Monaco Editor, extended thinking visualization, tool execution tracking, real-time ETL, analytics, and more."
+>
+  <Navigation />
+
+  <!-- Hero -->
+  <section class="pt-24 pb-12 md:pt-32 md:pb-16 gradient-bg">
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto">
+        <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-6">
+          <span class="gradient-text">Powerful Features</span><br />
+          for AI-Assisted Development
+        </h1>
+        <p class="text-xl text-muted-foreground">
+          Everything you need to understand, analyze, and optimize your Claude Code workflows
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Monaco Editor Section -->
+  <section class="py-20 bg-background">
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <div class="inline-flex items-center px-3 py-1 rounded-full bg-blue-500/10 text-blue-500 text-sm font-medium mb-4">
+            Code Display
+          </div>
+          <h2 class="text-3xl md:text-4xl font-bold mb-4">Monaco Editor Integration</h2>
+          <p class="text-lg text-muted-foreground mb-6">
+            Experience VS Code-quality code display directly in your browser. Rewind Viewer is the only Claude Code
+            conversation viewer that uses Microsoft's Monaco Editor for professional-grade syntax highlighting.
+          </p>
+          <ul class="space-y-3">
+            <li class="flex items-start">
+              <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span><strong>20+ Languages Supported:</strong> Syntax highlighting for TypeScript, Python, Go, Rust, Java, and more</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span><strong>Diff Viewer:</strong> Side-by-side comparison for Edit tool operations with inline changes highlighted</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span><strong>Fullscreen Mode:</strong> Expand any code block for immersive viewing and better readability</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span><strong>Download Code:</strong> Extract code snippets directly as files for reuse</span>
+            </li>
+          </ul>
+        </div>
+        <div class="bg-muted/30 rounded-lg p-8 border border-border">
+          <div class="bg-background rounded-lg overflow-hidden shadow-lg">
+            <div class="bg-muted px-4 py-2 text-sm font-mono border-b border-border">editor.tsx</div>
+            <div class="p-4 font-mono text-sm space-y-1">
+              <div><span class="text-purple-500">import</span> <span class="text-blue-500">Editor</span> <span class="text-purple-500">from</span> <span class="text-green-500">'@monaco-editor/react'</span>;</div>
+              <div class="mt-2"><span class="text-purple-500">export</span> <span class="text-purple-500">function</span> <span class="text-blue-500">MonacoCodeBlock</span>() {'{'}</div>
+              <div class="ml-4"><span class="text-purple-500">return</span> (</div>
+              <div class="ml-8">&lt;<span class="text-blue-500">Editor</span></div>
+              <div class="ml-10">height=<span class="text-green-500">"400px"</span></div>
+              <div class="ml-10">language=<span class="text-green-500">"typescript"</span></div>
+              <div class="ml-10">theme=<span class="text-green-500">"vs-dark"</span></div>
+              <div class="ml-8">/&gt;</div>
+              <div class="ml-4">);</div>
+              <div>{'}'}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Extended Thinking Section -->
+  <section class="py-20 gradient-bg">
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div class="order-2 lg:order-1">
+          <div class="bg-background rounded-lg p-6 border border-border shadow-lg">
+            <div class="flex items-start space-x-3 mb-4">
+              <div class="flex-shrink-0 h-8 w-8 rounded-full bg-purple-500/10 flex items-center justify-center">
+                <svg class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="font-semibold text-purple-500">Extended Thinking</h3>
+                  <button class="text-xs px-2 py-1 rounded bg-purple-500/10 text-purple-500">Copy</button>
+                </div>
+                <p class="text-sm text-muted-foreground">
+                  Let me analyze the request... I should first check the existing codebase structure to understand
+                  the pattern. Then I'll implement the feature following the established conventions...
+                </p>
+              </div>
+            </div>
+            <div class="text-xs text-muted-foreground">This reasoning block helps you understand Claude's decision-making process</div>
+          </div>
+        </div>
+        <div class="order-1 lg:order-2">
+          <div class="inline-flex items-center px-3 py-1 rounded-full bg-purple-500/10 text-purple-500 text-sm font-medium mb-4">
+            AI Insights
+          </div>
+          <h2 class="text-3xl md:text-4xl font-bold mb-4">Extended Thinking Visualization</h2>
+          <p class="text-lg text-muted-foreground mb-6">
+            Rewind Viewer is the first tool to beautifully display Claude's extended thinking—the internal reasoning
+            that happens before generating responses. Understand how AI thinks through complex problems.
+          </p>
+          <ul class="space-y-3">
+            <li class="flex items-start">
+              <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span><strong>Purple-Themed Blocks:</strong> Instantly recognizable reasoning sections with brain icons</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span><strong>Collapsible Content:</strong> Preview with 120-character excerpts, expand for full analysis</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span><strong>Learning Tool:</strong> Study AI reasoning patterns to improve your prompt engineering skills</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span><strong>Copy Functionality:</strong> Share insights with team members or save for reference</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tool Visualization Section -->
+  <section class="py-20 bg-background">
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-sm font-medium mb-4">
+          Tool Execution
+        </div>
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Complete Tool Execution Tracking</h2>
+        <p class="text-lg text-muted-foreground max-w-2xl mx-auto">
+          See every tool Claude Code executed—Bash commands, file operations, web searches, and more.
+          Color-coded for instant recognition with full parameter and result inspection.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6">
+        <!-- File System Tools -->
+        <div class="p-6 rounded-lg border border-border bg-card">
+          <h3 class="font-semibold mb-4 flex items-center">
+            <span class="h-3 w-3 rounded-full bg-blue-500 mr-2"></span>
+            File System
+          </h3>
+          <ul class="space-y-2 text-sm text-muted-foreground">
+            <li class="flex items-center">
+              <span class="px-2 py-1 rounded text-xs bg-blue-500/10 text-blue-500 font-mono mr-2">Read</span>
+              View file contents
+            </li>
+            <li class="flex items-center">
+              <span class="px-2 py-1 rounded text-xs bg-orange-500/10 text-orange-500 font-mono mr-2">Write</span>
+              Create new files
+            </li>
+            <li class="flex items-center">
+              <span class="px-2 py-1 rounded text-xs bg-amber-500/10 text-amber-500 font-mono mr-2">Edit</span>
+              Modify existing files
+            </li>
+          </ul>
+          <p class="text-xs text-muted-foreground mt-4">
+            Edit operations include side-by-side diff viewer showing exactly what changed
+          </p>
+        </div>
+
+        <!-- Search Tools -->
+        <div class="p-6 rounded-lg border border-border bg-card">
+          <h3 class="font-semibold mb-4 flex items-center">
+            <span class="h-3 w-3 rounded-full bg-purple-500 mr-2"></span>
+            Search
+          </h3>
+          <ul class="space-y-2 text-sm text-muted-foreground">
+            <li class="flex items-center">
+              <span class="px-2 py-1 rounded text-xs bg-purple-500/10 text-purple-500 font-mono mr-2">Grep</span>
+              Content search
+            </li>
+            <li class="flex items-center">
+              <span class="px-2 py-1 rounded text-xs bg-violet-500/10 text-violet-500 font-mono mr-2">Glob</span>
+              File pattern matching
+            </li>
+          </ul>
+          <p class="text-xs text-muted-foreground mt-4">
+            See search queries, file paths, and match counts with full parameter details
+          </p>
+        </div>
+
+        <!-- Execution & Web Tools -->
+        <div class="p-6 rounded-lg border border-border bg-card">
+          <h3 class="font-semibold mb-4 flex items-center">
+            <span class="h-3 w-3 rounded-full bg-green-500 mr-2"></span>
+            Execution & Web
+          </h3>
+          <ul class="space-y-2 text-sm text-muted-foreground">
+            <li class="flex items-center">
+              <span class="px-2 py-1 rounded text-xs bg-green-500/10 text-green-500 font-mono mr-2">Bash</span>
+              Terminal commands
+            </li>
+            <li class="flex items-center">
+              <span class="px-2 py-1 rounded text-xs bg-cyan-500/10 text-cyan-500 font-mono mr-2">WebFetch</span>
+              URL content retrieval
+            </li>
+            <li class="flex items-center">
+              <span class="px-2 py-1 rounded text-xs bg-sky-500/10 text-sky-500 font-mono mr-2">WebSearch</span>
+              Web searches
+            </li>
+            <li class="flex items-center">
+              <span class="px-2 py-1 rounded text-xs bg-indigo-500/10 text-indigo-500 font-mono mr-2">Task</span>
+              Agent operations
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mt-8 p-6 rounded-lg bg-muted/30 border border-border">
+        <div class="flex items-start space-x-3">
+          <svg class="h-6 w-6 text-primary flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <h4 class="font-semibold mb-1">Success & Error States</h4>
+            <p class="text-sm text-muted-foreground">
+              Every tool execution shows visual indicators—green checkmarks for success, red error icons for failures.
+              Inspect full error messages and stack traces when things go wrong.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Analytics Section -->
+  <section class="py-20 gradient-bg">
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <div class="inline-flex items-center px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-500 text-sm font-medium mb-4">
+            Analytics
+          </div>
+          <h2 class="text-3xl md:text-4xl font-bold mb-4">Token Tracking & Cost Analytics</h2>
+          <p class="text-lg text-muted-foreground mb-6">
+            Understand exactly where your API costs go. Rewind Viewer tracks every token—input, output, cache creation,
+            and cache reads—with granular breakdowns at the conversation and message level.
+          </p>
+          <ul class="space-y-3">
+            <li class="flex items-start">
+              <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span><strong>Token Breakdowns:</strong> Separate counts for input, output, cache creation, cache reads</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span><strong>Model Distribution:</strong> Pie charts showing Claude 3.5 Sonnet, Opus, Haiku usage</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span><strong>Activity Timelines:</strong> Line charts tracking conversation frequency over time</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span><strong>Project Aggregates:</strong> Total tokens and costs per project for budget tracking</span>
+            </li>
+          </ul>
+        </div>
+        <div class="bg-background rounded-lg p-6 border border-border shadow-lg">
+          <h3 class="font-semibold mb-4">Token Usage Overview</h3>
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-muted-foreground">Input Tokens</span>
+                <span class="font-mono">245,891</span>
+              </div>
+              <div class="h-2 bg-muted rounded-full overflow-hidden">
+                <div class="h-full bg-blue-500" style="width: 65%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-muted-foreground">Output Tokens</span>
+                <span class="font-mono">89,234</span>
+              </div>
+              <div class="h-2 bg-muted rounded-full overflow-hidden">
+                <div class="h-full bg-green-500" style="width: 35%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="text-muted-foreground">Cache Read</span>
+                <span class="font-mono">156,723</span>
+              </div>
+              <div class="h-2 bg-muted rounded-full overflow-hidden">
+                <div class="h-full bg-purple-500" style="width: 50%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-6 pt-4 border-t border-border">
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-muted-foreground">Total Conversations</span>
+              <span class="text-2xl font-bold">1,247</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Real-Time Hook Ingestion Section -->
+  <section class="py-20 bg-background">
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div class="order-2 lg:order-1">
+          <div class="bg-muted rounded-lg p-4 font-mono text-sm border border-border">
+            <div class="flex items-center space-x-2 mb-3">
+              <div class="h-3 w-3 rounded-full bg-red-500"></div>
+              <div class="h-3 w-3 rounded-full bg-yellow-500"></div>
+              <div class="h-3 w-3 rounded-full bg-green-500"></div>
+              <span class="text-muted-foreground ml-2">Real-Time Ingestion</span>
+            </div>
+            <div class="space-y-1 text-xs">
+              <div class="text-green-500">✓ Hook triggered on Claude response</div>
+              <div class="text-blue-500">📝 Processing message from session...</div>
+              <div class="text-purple-500">🔄 Extracting content blocks...</div>
+              <div class="text-green-500">✓ Stored in Neo4j graph database</div>
+              <div class="text-green-500">✓ Indexed for full-text search</div>
+              <div class="text-muted-foreground">⚡ Ingestion complete (23ms)</div>
+            </div>
+          </div>
+        </div>
+        <div class="order-1 lg:order-2">
+          <div class="inline-flex items-center px-3 py-1 rounded-full bg-orange-500/10 text-orange-500 text-sm font-medium mb-4">
+            Data Ingestion
+          </div>
+          <h2 class="text-3xl md:text-4xl font-bold mb-4">Real-Time Hook Integration</h2>
+          <p class="text-lg text-muted-foreground mb-6">
+            Automatic, zero-friction data capture via Claude Code's hook system. Every response is instantly
+            ingested into Neo4j—no manual imports, no CLI commands, no maintenance.
+          </p>
+          <ul class="space-y-3">
+            <li class="flex items-start">
+              <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span><strong>Zero Dependencies:</strong> Python hook uses only stdlib—no pip install required</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span><strong>Incremental Updates:</strong> Tracks processed lines per transcript, only sends new data</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span><strong>Non-Blocking:</strong> Hook never interrupts Claude Code—errors fail silently</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span><strong>Debug Logging:</strong> Optional verbose logging to ~/.claude/state/rewind/hook.log</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Additional Features Grid -->
+  <section class="py-20 gradient-bg">
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">And Much More</h2>
+        <p class="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Rewind Viewer is packed with thoughtful features designed for professional developers
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="p-6 rounded-lg bg-background border border-border">
+          <h3 class="font-semibold mb-2 flex items-center">
+            <svg class="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+            </svg>
+            Dark Mode
+          </h3>
+          <p class="text-sm text-muted-foreground">System-aware theme with manual toggle. Carefully crafted dark colors for comfortable night coding.</p>
+        </div>
+
+        <div class="p-6 rounded-lg bg-background border border-border">
+          <h3 class="font-semibold mb-2 flex items-center">
+            <svg class="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            3-Tab Viewer
+          </h3>
+          <p class="text-sm text-muted-foreground">Formatted chat view, raw JSON with Monaco, and statistics tab. Switch views instantly.</p>
+        </div>
+
+        <div class="p-6 rounded-lg bg-background border border-border">
+          <h3 class="font-semibold mb-2 flex items-center">
+            <svg class="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+            </svg>
+            Table & Grid Views
+          </h3>
+          <p class="text-sm text-muted-foreground">Toggle between card grid and data table for projects. Sort, filter, and organize your way.</p>
+        </div>
+
+        <div class="p-6 rounded-lg bg-background border border-border">
+          <h3 class="font-semibold mb-2 flex items-center">
+            <svg class="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Copy Everything
+          </h3>
+          <p class="text-sm text-muted-foreground">Copy buttons on code blocks, messages, thinking blocks. Share insights with your team.</p>
+        </div>
+
+        <div class="p-6 rounded-lg bg-background border border-border">
+          <h3 class="font-semibold mb-2 flex items-center">
+            <svg class="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4.879-4.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242z" />
+            </svg>
+            Full-Text Search
+          </h3>
+          <p class="text-sm text-muted-foreground">Instant search across all conversations with project filtering. Find any code or discussion fast.</p>
+        </div>
+
+        <div class="p-6 rounded-lg bg-background border border-border">
+          <h3 class="font-semibold mb-2 flex items-center">
+            <svg class="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            Type Safe
+          </h3>
+          <p class="text-sm text-muted-foreground">End-to-end TypeScript with strict mode. Shared types between API and frontend.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-20 bg-background">
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl mx-auto text-center">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">
+          Experience the Full Power of Rewind Viewer
+        </h2>
+        <p class="text-lg text-muted-foreground mb-8">
+          Open source, self-hosted, and built for developers who demand complete control
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="/#getting-started"
+            class="inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            Get Started Now
+            <svg class="ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </a>
+          <a
+            href="https://github.com/davidgaribay-dev/rewind"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-lg border border-border bg-background hover:bg-accent transition-colors"
+          >
+            View on GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</BaseLayout>

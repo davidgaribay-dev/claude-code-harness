@@ -1,0 +1,20 @@
+---
+interface Props {
+  name: string;
+  type: string;
+  required?: boolean;
+}
+
+const { name, type, required = false } = Astro.props;
+---
+
+<div class="param-item">
+  <div class="param-name">
+    {name}
+    <span class="param-type">{type}</span>
+    {required && <span class="badge badge-primary" style="margin-left: 0.5rem;">Required</span>}
+  </div>
+  <div class="param-desc">
+    <slot />
+  </div>
+</div>

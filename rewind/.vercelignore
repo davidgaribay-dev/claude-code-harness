@@ -1,0 +1,24 @@
+# Exclude all packages except marketing
+packages/web
+packages/api
+packages/shared
+
+# Exclude development files
+.env
+.env.*
+!.env.example
+*.log
+logs/
+
+# Exclude Docker files
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Exclude README assets (only needed for GitHub)
+assets/
+
+# Exclude IDE and system files
+.vscode/
+.idea/
+.DS_Store
