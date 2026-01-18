@@ -1,4 +1,4 @@
-// Core data types based on .claude/projects structure and Anthropic Messages API
+// Core data types based on Claude Code conversation structure and Anthropic Messages API
 
 export interface Usage {
   input_tokens: number;
@@ -13,7 +13,6 @@ export interface Usage {
 }
 
 // Anthropic API Content Block Types
-// Based on: https://docs.anthropic.com/en/api/messages
 
 export interface TextBlock {
   type: 'text';
@@ -64,7 +63,7 @@ export interface UserMessage {
   content: string | ContentBlock[];
 }
 
-// Rewind JSONL line format
+// Conversation message from transcript
 export interface ConversationMessage {
   parentUuid: string | null;
   isSidechain?: boolean;
@@ -82,7 +81,7 @@ export interface ConversationMessage {
   usage?: Usage;
 }
 
-// Frontend/API types
+// Frontend types
 
 export interface Conversation {
   sessionId: string;
@@ -99,11 +98,11 @@ export interface Conversation {
 }
 
 export interface Project {
-  id: string; // folder name 
-  name?: string; // raw name from DB
-  displayName: string; // parsed/cleaned name
+  id: string;
+  name?: string;
+  displayName: string;
   conversationCount: number;
-  totalMessages?: number; // total message count from DB
+  totalMessages?: number;
   lastModified: Date;
   path: string;
   conversations?: Conversation[];

@@ -2,11 +2,10 @@
 
 import type { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown } from "lucide-react"
-import { format } from "date-fns"
 import type { Conversation } from "../../lib/types"
 import { Button } from "../ui/button"
 import { Badge } from "../ui/badge"
-import { formatNumber, formatModelName } from "../../lib/stats"
+import { formatNumber, formatModelName, safeFormatDate } from "../../lib/stats"
 
 export const columns: ColumnDef<Conversation>[] = [
   {
@@ -23,10 +22,9 @@ export const columns: ColumnDef<Conversation>[] = [
       )
     },
     cell: ({ row }) => {
-      const date = new Date(row.getValue("timestamp"))
       return (
         <div className="font-medium">
-          {format(date, "MMM dd, yyyy HH:mm")}
+          {safeFormatDate(row.getValue("timestamp"), "MMM dd, yyyy HH:mm")}
         </div>
       )
     },

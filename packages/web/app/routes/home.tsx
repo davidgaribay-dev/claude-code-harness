@@ -1,115 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Route } from './+types/home';
-import { useProjects } from '~/hooks/useProjects';
-import { Navbar } from '~/components/Navbar';
-import { ProjectCard } from '~/components/ProjectCard';
-import { ProjectDataTable } from '~/components/projects/data-table';
-import { projectColumns } from '~/components/projects/columns';
-import { Button } from '~/components/ui/button';
-import { RefreshCw, LayoutGrid, Table, Database } from 'lucide-react';
-import { ToggleGroup, ToggleGroupItem } from '~/components/ui/toggle-group';
-import { ETLLogViewer } from '~/components/ETLLogViewer';
-import { useToast } from '~/hooks/use-toast';
+import { AppSidebar } from '~/components/AppSidebar';
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: 'Projects - Rewind AI Governance Platform' },
-    { name: 'description', content: 'Enterprise AI governance dashboard. Monitor projects, track costs, ensure compliance, and maintain complete auditability across all Claude Code workflows.' },
-    { name: 'keywords', content: 'AI governance, project monitoring, cost tracking, compliance, auditability, Claude Code, enterprise AI' },
+    { title: 'Rewind - AI Conversation History' },
+    { name: 'description', content: 'Browse and analyze your Claude Code conversation history' },
   ];
 }
 
 export default function Home() {
-  const { projects, loading, refreshProjects, hasProjects } = useProjects();
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
-  const [showETLLogs, setShowETLLogs] = useState(false);
-  const { toast } = useToast();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('rewind:sidebarCollapsed') === 'true';
+    }
+    return false;
+  });
 
-  const handleRunETL = () => {
-    setShowETLLogs(true);
-  };
-
-  const handleETLComplete = () => {
-    toast({
-      title: 'Data Pipeline Complete',
-      description: 'AI conversation data has been successfully processed and indexed.',
-    });
-    refreshProjects();
-  };
+  useEffect(() => {
+    localStorage.setItem('rewind:sidebarCollapsed', String(sidebarCollapsed));
+  }, [sidebarCollapsed]);
 
   return (
-    <div className="h-screen flex flex-col">
-      <Navbar />
+    <div className="h-screen flex overflow-hidden">
+      <AppSidebar collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
 
-      <div className="flex-1 overflow-auto">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold">AI Development Projects</h1>
-              <p className="text-muted-foreground mt-1">
-                Monitor and govern AI-assisted development across {projects.length} {projects.length === 1 ? 'project' : 'projects'}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="default"
-                onClick={handleRunETL}
-              >
-                <Database className="h-4 w-4 mr-2" />
-                Import Data
-              </Button>
-              <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'grid' | 'table')}>
-                <ToggleGroupItem value="grid" aria-label="Grid view">
-                  <LayoutGrid className="h-4 w-4" />
-                </ToggleGroupItem>
-                <ToggleGroupItem value="table" aria-label="Table view">
-                  <Table className="h-4 w-4" />
-                </ToggleGroupItem>
-              </ToggleGroup>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => refreshProjects()}
-                disabled={loading}
-              >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              </Button>
-            </div>
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Empty state - conversations are accessed via sidebar */}
+        <div className="flex-1 flex items-center justify-center text-muted-foreground">
+          <div className="text-center">
+            <p className="text-lg">Select a conversation from the sidebar</p>
+            <p className="text-sm mt-1">Your recent conversations are listed on the left</p>
           </div>
-
-          {loading ? (
-            <div className="flex items-center justify-center h-64">
-              <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : !hasProjects ? (
-            <div className="flex items-center justify-center h-64 text-muted-foreground">
-              <div className="text-center">
-                <Database className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
-                <p className="text-lg font-semibold mb-2">No AI Projects Found</p>
-                <p className="text-sm text-muted-foreground mb-4">Initialize the data pipeline to begin monitoring your AI development workflows</p>
-                <Button onClick={handleRunETL}>
-                  <Database className="h-4 w-4 mr-2" />
-                  Initialize Data Pipeline
-                </Button>
-              </div>
-            </div>
-          ) : viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {projects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
-              ))}
-            </div>
-          ) : (
-            <ProjectDataTable columns={projectColumns} data={projects} />
-          )}
         </div>
       </div>
-
-      <ETLLogViewer
-        isOpen={showETLLogs}
-        onClose={() => setShowETLLogs(false)}
-        onComplete={handleETLComplete}
-      />
     </div>
   );
 }

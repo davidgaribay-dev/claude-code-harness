@@ -2,10 +2,10 @@
 
 import type { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown } from "lucide-react"
-import { format } from "date-fns"
 import type { Project } from "../../lib/types"
 import { Button } from "../ui/button"
 import { Badge } from "../ui/badge"
+import { safeFormatDate } from "../../lib/stats"
 
 export const projectColumns: ColumnDef<Project>[] = [
   {
@@ -76,10 +76,11 @@ export const projectColumns: ColumnDef<Project>[] = [
       )
     },
     cell: ({ row }) => {
-      const date = row.getValue("lastModified") as Date
+      const value = row.getValue("lastModified")
+      const formatted = safeFormatDate(value, "MMM dd, yyyy", "Never")
       return (
-        <div className="font-medium">
-          {format(date, "MMM dd, yyyy")}
+        <div className={formatted === "Never" ? "text-muted-foreground" : "font-medium"}>
+          {formatted}
         </div>
       )
     },

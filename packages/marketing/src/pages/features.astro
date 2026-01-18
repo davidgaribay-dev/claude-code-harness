@@ -339,7 +339,7 @@ import Footer from '@/components/Footer.astro';
     </div>
   </section>
 
-  <!-- Real-Time ETL Section -->
+  <!-- Real-Time Hook Ingestion Section -->
   <section class="py-20 bg-background">
     <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="grid lg:grid-cols-2 gap-12 items-center">
@@ -349,51 +349,51 @@ import Footer from '@/components/Footer.astro';
               <div class="h-3 w-3 rounded-full bg-red-500"></div>
               <div class="h-3 w-3 rounded-full bg-yellow-500"></div>
               <div class="h-3 w-3 rounded-full bg-green-500"></div>
-              <span class="text-muted-foreground ml-2">ETL Progress</span>
+              <span class="text-muted-foreground ml-2">Real-Time Ingestion</span>
             </div>
             <div class="space-y-1 text-xs">
-              <div class="text-green-500">✓ Connected to database</div>
-              <div class="text-blue-500">📂 Scanning projects directory...</div>
-              <div class="text-blue-500">📝 Processing conversation #1247</div>
+              <div class="text-green-500">✓ Hook triggered on Claude response</div>
+              <div class="text-blue-500">📝 Processing message from session...</div>
               <div class="text-purple-500">🔄 Extracting content blocks...</div>
-              <div class="text-green-500">✓ Imported 42 messages (18,234 tokens)</div>
-              <div class="text-muted-foreground">⏱️  Progress: 87% (1,085 / 1,247 files)</div>
+              <div class="text-green-500">✓ Stored in Neo4j graph database</div>
+              <div class="text-green-500">✓ Indexed for full-text search</div>
+              <div class="text-muted-foreground">⚡ Ingestion complete (23ms)</div>
             </div>
           </div>
         </div>
         <div class="order-1 lg:order-2">
           <div class="inline-flex items-center px-3 py-1 rounded-full bg-orange-500/10 text-orange-500 text-sm font-medium mb-4">
-            Data Import
+            Data Ingestion
           </div>
-          <h2 class="text-3xl md:text-4xl font-bold mb-4">Real-Time ETL with Live Streaming</h2>
+          <h2 class="text-3xl md:text-4xl font-bold mb-4">Real-Time Hook Integration</h2>
           <p class="text-lg text-muted-foreground mb-6">
-            Watch your Claude Code conversations import in real-time with Server-Sent Events. Terminal-style logs
-            with emoji-coded events show exactly what's happening as it happens.
+            Automatic, zero-friction data capture via Claude Code's hook system. Every response is instantly
+            ingested into Neo4j—no manual imports, no CLI commands, no maintenance.
           </p>
           <ul class="space-y-3">
             <li class="flex items-start">
               <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
-              <span><strong>Three Import Methods:</strong> CLI one-time, CLI watch mode, or Web UI with live streaming</span>
+              <span><strong>Zero Dependencies:</strong> Python hook uses only stdlib—no pip install required</span>
             </li>
             <li class="flex items-start">
               <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
-              <span><strong>Incremental Processing:</strong> Only processes changed files, tracks modification times</span>
+              <span><strong>Incremental Updates:</strong> Tracks processed lines per transcript, only sends new data</span>
             </li>
             <li class="flex items-start">
               <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
-              <span><strong>Download Logs:</strong> Export full ETL logs for debugging and record-keeping</span>
+              <span><strong>Non-Blocking:</strong> Hook never interrupts Claude Code—errors fail silently</span>
             </li>
             <li class="flex items-start">
               <svg class="h-6 w-6 text-green-500 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
-              <span><strong>Smart Detection:</strong> Automatically finds conversation files in project directories</span>
+              <span><strong>Debug Logging:</strong> Optional verbose logging to ~/.claude/state/rewind/hook.log</span>
             </li>
           </ul>
         </div>
@@ -457,9 +457,9 @@ import Footer from '@/components/Footer.astro';
             <svg class="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4.879-4.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242z" />
             </svg>
-            Settings UI
+            Full-Text Search
           </h3>
-          <p class="text-sm text-muted-foreground">Visual directory browser to find Claude Code data. Test paths before importing.</p>
+          <p class="text-sm text-muted-foreground">Instant search across all conversations with project filtering. Find any code or discussion fast.</p>
         </div>
 
         <div class="p-6 rounded-lg bg-background border border-border">

@@ -1,49 +1,39 @@
 import { useParams, useNavigate } from 'react-router';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import type { Route } from './+types/project.$projectId';
-import type { Conversation } from '@rewind/shared';
 import { useProjects } from '~/hooks/useProjects';
-import { getConversationsByProjectId } from '~/lib/api-client';
-import { Navbar } from '~/components/Navbar';
-import { ConversationDataTable } from '~/components/conversations/data-table';
-import { columns } from '~/components/conversations/columns';
+import { AppSidebar } from '~/components/AppSidebar';
 import { Button } from '~/components/ui/button';
 import { RefreshCw } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
-import { StatsDashboard } from '~/components/StatsDashboard';
-import { calculateStats } from '~/lib/stats';
 
 export function meta({ params }: Route.MetaArgs) {
   return [
     { title: `Project - Rewind` },
     { name: 'description', content: 'View all conversations and statistics for this Claude Code project' },
-    { name: 'keywords', content: 'Claude Code, project conversations, AI chat history, statistics, token usage' },
   ];
 }
 
 export default function ProjectDetail() {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const { projects, loading, refreshProjects } = useProjects();
+  const { projects, loading } = useProjects();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('rewind:sidebarCollapsed') === 'true';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('rewind:sidebarCollapsed', String(sidebarCollapsed));
+  }, [sidebarCollapsed]);
 
   const project = projects.find((p) => p.id === projectId);
 
-  // Fetch conversations for this project
-  const {
-    data: conversationsData = [],
-    isLoading: conversationsLoading,
-    refetch: refreshConversations,
-  } = useQuery({
-    queryKey: ['conversations', projectId],
-    queryFn: () => getConversationsByProjectId(projectId!),
-    enabled: !!projectId,
-    staleTime: 30 * 1000,
-  });
-
-  if (loading || conversationsLoading) {
+  if (loading) {
     return (
-      <div className="h-screen flex flex-col">
-        <Navbar />
+      <div className="h-screen flex">
+        <AppSidebar collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
         <div className="flex-1 flex items-center justify-center">
           <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
@@ -53,8 +43,8 @@ export default function ProjectDetail() {
 
   if (!project) {
     return (
-      <div className="h-screen flex flex-col">
-        <Navbar />
+      <div className="h-screen flex">
+        <AppSidebar collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-2xl font-bold mb-2">Project not found</h2>
@@ -62,7 +52,7 @@ export default function ProjectDetail() {
               The project you're looking for doesn't exist.
             </p>
             <Button onClick={() => navigate('/')}>
-              Back to Projects
+              Back to Home
             </Button>
           </div>
         </div>
@@ -70,75 +60,17 @@ export default function ProjectDetail() {
     );
   }
 
-  // Transform API conversations to match the expected format
-  const conversations = conversationsData.map(conv => ({
-    uuid: conv.id,
-    sessionId: conv.id,
-    timestamp: new Date(conv.createdAt),
-    messageCount: conv.messageCount || 0,
-    preview: conv.title || 'Untitled',
-    type: 'user' as const,
-    messages: [],
-  }));
-
-  const handleSelectConversation = (conversation: Conversation) => {
-    navigate(`/project/${projectId}/conversation/${conversation.uuid}`);
-  };
-
-  const handleRefresh = async () => {
-    await Promise.all([refreshProjects(), refreshConversations()]);
-  };
-
   return (
-    <div className="h-screen flex flex-col">
-      <Navbar />
+    <div className="h-screen flex overflow-hidden">
+      <AppSidebar collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
 
-      <div className="flex-1 overflow-auto">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold">{project.displayName}</h1>
-              <p className="text-muted-foreground mt-1">
-                {project.conversationCount} conversations
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleRefresh}
-              disabled={loading || conversationsLoading}
-            >
-              <RefreshCw className={`h-4 w-4 ${loading || conversationsLoading ? 'animate-spin' : ''}`} />
-            </Button>
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Empty state - conversations are accessed via sidebar */}
+        <div className="flex-1 flex items-center justify-center text-muted-foreground">
+          <div className="text-center">
+            <p className="text-lg">Select a conversation from the sidebar</p>
+            <p className="text-sm mt-1">Conversations for {project.displayName} are listed on the left</p>
           </div>
-
-          <Tabs defaultValue="conversations" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="conversations">Conversations</TabsTrigger>
-              <TabsTrigger value="stats">Statistics</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="conversations">
-              {conversations.length === 0 ? (
-                <div className="flex items-center justify-center h-64">
-                  <p className="text-muted-foreground">No conversations found</p>
-                </div>
-              ) : (
-                <ConversationDataTable
-                  columns={columns}
-                  data={conversations}
-                  onSelectConversation={handleSelectConversation}
-                />
-              )}
-            </TabsContent>
-
-            <TabsContent value="stats">
-              <StatsDashboard stats={calculateStats([{
-                ...project,
-                conversations,
-              }])} />
-            </TabsContent>
-          </Tabs>
         </div>
       </div>
     </div>

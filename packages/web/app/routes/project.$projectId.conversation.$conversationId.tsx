@@ -1,24 +1,44 @@
 import { useParams, useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { format } from 'date-fns';
+import { useState, useEffect } from 'react';
 import type { Route } from './+types/project.$projectId.conversation.$conversationId';
 import { useProjects } from '~/hooks/useProjects';
 import { getConversationById } from '~/lib/api-client';
-import { Navbar } from '~/components/Navbar';
+import { AppSidebar } from '~/components/AppSidebar';
 import { ChatMessage } from '~/components/ChatMessage';
 import { MonacoCodeBlock } from '~/components/MonacoCodeBlock';
 import { Button } from '~/components/ui/button';
 import { Badge } from '~/components/ui/badge';
-import { RefreshCw } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { ScrollArea } from '~/components/ui/scroll-area';
-import { formatNumber, formatModelName } from '~/lib/stats';
+import { Separator } from '~/components/ui/separator';
+import {
+  RefreshCw,
+  PanelRight,
+  Code,
+  MessageSquare,
+  Calendar,
+  Hash,
+  Cpu,
+  Sparkles,
+  Clock,
+  Wrench,
+} from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '~/components/ui/tooltip';
+import { formatModelName, safeFormatDate, formatNumber } from '~/lib/stats';
 
 export function meta({ params }: Route.MetaArgs) {
   return [
     { title: `Conversation - Rewind` },
-    { name: 'description', content: 'View detailed conversation history with messages, code blocks, thinking processes, and token usage statistics' },
-    { name: 'keywords', content: 'Claude Code, conversation, AI chat, code blocks, thinking, tool usage, tokens, Monaco editor' },
+    {
+      name: 'description',
+      content:
+        'View detailed conversation history with messages, code blocks, thinking processes, and token usage statistics',
+    },
   ];
 }
 
@@ -27,13 +47,34 @@ export default function ConversationDetail() {
   const navigate = useNavigate();
   const { projects, loading: projectsLoading } = useProjects();
 
+  // Persist UI state in localStorage
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('rewind:sidebarCollapsed') === 'true';
+    }
+    return false;
+  });
+  const [showProperties, setShowProperties] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('rewind:showProperties') !== 'false';
+    }
+    return true;
+  });
+  const [activeTab, setActiveTab] = useState<string>('conversation');
+
+  // Save UI state to localStorage
+  useEffect(() => {
+    localStorage.setItem('rewind:sidebarCollapsed', String(sidebarCollapsed));
+  }, [sidebarCollapsed]);
+
+  useEffect(() => {
+    localStorage.setItem('rewind:showProperties', String(showProperties));
+  }, [showProperties]);
+
   const project = projects.find((p) => p.id === projectId);
 
   // Fetch conversation details
-  const {
-    data: conversationData,
-    isLoading: conversationLoading,
-  } = useQuery({
+  const { data: conversationData, isLoading: conversationLoading } = useQuery({
     queryKey: ['conversation', conversationId],
     queryFn: () => getConversationById(conversationId!),
     enabled: !!conversationId,
@@ -42,8 +83,8 @@ export default function ConversationDetail() {
 
   if (projectsLoading || conversationLoading) {
     return (
-      <div className="h-screen flex flex-col">
-        <Navbar />
+      <div className="h-screen flex">
+        <AppSidebar collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
         <div className="flex-1 flex items-center justify-center">
           <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
@@ -53,182 +94,311 @@ export default function ConversationDetail() {
 
   if (!conversationData || !project) {
     return (
-      <div className="h-screen flex flex-col">
-        <Navbar />
+      <div className="h-screen flex">
+        <AppSidebar collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-2xl font-bold mb-2">Conversation not found</h2>
             <p className="text-muted-foreground mb-4">
               The conversation you're looking for doesn't exist.
             </p>
-            <Button onClick={() => navigate(`/project/${projectId}`)}>
-              Back to Project
-            </Button>
+            <Button onClick={() => navigate(`/project/${projectId}`)}>Back to Project</Button>
           </div>
         </div>
       </div>
     );
   }
 
-  // Transform API data to match expected conversation format
-  const transformedMessages = (conversationData.messages || []).map(msg => {
-    // Build content blocks from rawContent or contentBlocks
-    const contentBlocks = msg.contentBlocks?.map(block => {
-      if (block.type === 'text') {
-        return { type: 'text' as const, text: block.text || '' };
-      } else if (block.type === 'thinking') {
-        return { type: 'thinking' as const, thinking: block.thinking || '' };
-      } else if (block.type === 'tool_use') {
-        return {
-          type: 'tool_use' as const,
-          id: block.toolUseId || '',
-          name: block.toolName || '',
-          input: block.toolInput || {},
-        };
-      } else if (block.type === 'tool_result') {
-        return {
-          type: 'tool_result' as const,
-          tool_use_id: block.toolResultId || '',
-          content: block.toolContent || '',
-          is_error: block.isError || false,
-        };
+  // Extract preview from first user message
+  let preview = '';
+  const firstUserMsg = conversationData.messages?.find((m) => m.type === 'user');
+  if (firstUserMsg?.message?.content) {
+    const content = firstUserMsg.message.content;
+    if (typeof content === 'string') {
+      preview = content.slice(0, 200);
+    } else if (Array.isArray(content)) {
+      const textBlock = content.find((b: { type: string }) => b.type === 'text');
+      if (textBlock && 'text' in textBlock) {
+        preview = (textBlock as { text: string }).text.slice(0, 200);
       }
-      return null;
-    }).filter(Boolean) || [];
-
-    // Create message object based on role
-    const messageObj = msg.role === 'assistant' ? {
-      model: msg.model || 'unknown',
-      id: msg.messageUuid,
-      type: 'assistant',
-      role: 'assistant',
-      content: contentBlocks.length > 0 ? contentBlocks : msg.content || '',
-      stop_reason: msg.stopReason as any,
-      stop_sequence: null,
-      usage: {
-        input_tokens: msg.inputTokens || 0,
-        output_tokens: msg.outputTokens || 0,
-        cache_creation_input_tokens: msg.cacheCreationTokens,
-        cache_read_input_tokens: msg.cacheReadTokens,
-      },
-    } : {
-      role: 'user',
-      content: msg.content || '',
-    };
-
-    return {
-      parentUuid: msg.parentUuid,
-      isSidechain: msg.isSidechain,
-      userType: msg.userType,
-      cwd: msg.cwd,
-      sessionId: msg.sessionId,
-      version: msg.version,
-      gitBranch: msg.gitBranch,
-      agentId: msg.agentId,
-      type: msg.type as 'user' | 'assistant' | 'queue-operation',
-      message: messageObj,
-      requestId: msg.requestId,
-      uuid: msg.messageUuid,
-      timestamp: msg.timestamp,
-    };
-  });
+    }
+  }
 
   const conversation = {
-    uuid: conversationData.id,
-    sessionId: conversationData.id,
-    timestamp: new Date(conversationData.createdAt),
-    messageCount: transformedMessages.length,
-    preview: conversationData.title || 'Untitled',
-    type: 'user' as const,
-    messages: transformedMessages,
-    model: conversationData.messages?.find(m => m.role === 'assistant')?.model,
-    totalTokens: conversationData.messages?.reduce((sum, m) =>
-      sum + (m.inputTokens || 0) + (m.outputTokens || 0), 0
-    ),
-    inputTokens: conversationData.messages?.reduce((sum, m) =>
-      sum + (m.inputTokens || 0), 0
-    ),
-    outputTokens: conversationData.messages?.reduce((sum, m) =>
-      sum + (m.outputTokens || 0), 0
-    ),
+    uuid: conversationData.uuid,
+    sessionId: conversationData.sessionId,
+    timestamp: new Date(conversationData.timestamp),
+    messageCount: conversationData.messageCount,
+    preview: preview || conversationData.preview || 'Untitled',
+    type: conversationData.type as 'user' | 'assistant',
+    messages: conversationData.messages || [],
+    model: conversationData.model,
+    totalTokens: conversationData.totalTokens,
+    inputTokens: conversationData.inputTokens,
+    outputTokens: conversationData.outputTokens,
   };
 
-  return (
-    <div className="h-screen flex flex-col">
-      <Navbar />
+  // Calculate tool usage stats
+  const toolUsage: Record<string, number> = {};
+  conversation.messages.forEach((msg) => {
+    if (msg.type === 'assistant' && Array.isArray(msg.message?.content)) {
+      msg.message.content.forEach((block: { type: string; name?: string }) => {
+        if (block.type === 'tool_use' && block.name) {
+          toolUsage[block.name] = (toolUsage[block.name] || 0) + 1;
+        }
+      });
+    }
+  });
 
-      {/* Header */}
-      <div className="border-b">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <h2 className="text-xl font-bold mb-3">Conversation Details</h2>
-          <div className="flex items-center gap-2 flex-wrap mb-3">
-            <span className="text-sm text-muted-foreground">
-              {format(conversation.timestamp, 'MMM dd, yyyy HH:mm')}
-            </span>
-            {conversation.model && (
-              <>
-                <span className="text-muted-foreground">•</span>
-                <Badge>{formatModelName(conversation.model)}</Badge>
-              </>
+  const totalToolCalls = Object.values(toolUsage).reduce((a, b) => a + b, 0);
+
+  return (
+    <TooltipProvider delayDuration={0}>
+      <div className="h-screen flex overflow-hidden">
+        {/* Left Sidebar - Navigation */}
+        <AppSidebar collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
+
+        {/* Main Content */}
+        <div className="flex-1 flex min-w-0">
+          {/* Chat Content */}
+          <div className="flex-1 flex flex-col min-w-0 relative">
+            {/* Floating toggle button when panel is hidden */}
+            {!showProperties && (
+              <div className="absolute top-2 right-2 z-10">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 bg-background/80 backdrop-blur-sm"
+                      onClick={() => setShowProperties(true)}
+                    >
+                      <PanelRight className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left">Show properties</TooltipContent>
+                </Tooltip>
+              </div>
             )}
-          </div>
-          <div className="flex items-center gap-3 flex-wrap text-sm">
-            <div className="flex items-center gap-1.5">
-              <span className="text-muted-foreground">Messages:</span>
-              <span className="font-medium">{conversation.messageCount}</span>
-              <span className="text-muted-foreground text-xs">
-                ({conversation.messages.filter((m) => m.type === 'user').length} user, {conversation.messages.filter((m) => m.type === 'assistant').length} assistant)
-              </span>
+
+            {/* Content Area */}
+            <div className="flex-1 min-h-0">
+              {activeTab === 'conversation' ? (
+                <ScrollArea className="h-full">
+                  <div className="max-w-4xl mx-auto">
+                    {conversation.messages.map((msg) => (
+                      <ChatMessage key={msg.uuid} message={msg} />
+                    ))}
+                    {/* Bottom padding for scroll */}
+                    <div className="h-8" />
+                  </div>
+                </ScrollArea>
+              ) : (
+                <div className="h-full p-4">
+                  <MonacoCodeBlock
+                    code={JSON.stringify(conversation, null, 2)}
+                    language="json"
+                    maxHeight={9999}
+                  />
+                </div>
+              )}
             </div>
-            {conversation.totalTokens && (
-              <>
-                <span className="text-muted-foreground">•</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-muted-foreground">Tokens:</span>
-                  <span className="font-medium">{formatNumber(conversation.totalTokens)}</span>
-                  {conversation.inputTokens && conversation.outputTokens && (
-                    <span className="text-muted-foreground text-xs">
-                      ({formatNumber(conversation.inputTokens)} in, {formatNumber(conversation.outputTokens)} out)
-                    </span>
+          </div>
+
+          {/* Right Panel - Linear-style Properties */}
+          {showProperties && (
+            <div className="w-72 border-l flex flex-col bg-muted/30">
+              {/* Panel Header with controls */}
+              <div className="h-12 flex items-center justify-between px-3 border-b">
+                {/* Tab toggle buttons */}
+                <div className="flex items-center bg-background rounded-lg p-0.5">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={activeTab === 'conversation' ? 'secondary' : 'ghost'}
+                        size="sm"
+                        className="h-7 px-2.5"
+                        onClick={() => setActiveTab('conversation')}
+                      >
+                        <MessageSquare className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Conversation</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={activeTab === 'raw' ? 'secondary' : 'ghost'}
+                        size="sm"
+                        className="h-7 px-2.5"
+                        onClick={() => setActiveTab('raw')}
+                      >
+                        <Code className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Raw JSON</TooltipContent>
+                  </Tooltip>
+                </div>
+
+                {/* Close button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setShowProperties(false)}
+                    >
+                      <PanelRight className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left">Hide properties</TooltipContent>
+                </Tooltip>
+              </div>
+
+              <ScrollArea className="flex-1">
+                <div className="p-4 space-y-6">
+                  {/* Title */}
+                  <div>
+                    <h2 className="text-sm font-semibold mb-1 line-clamp-2">
+                      {conversation.preview}
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      {project.displayName}
+                    </p>
+                  </div>
+
+                  <Separator />
+
+                  {/* Properties */}
+                  <div className="space-y-4">
+                    {/* Date */}
+                    <PropertyRow
+                      icon={Calendar}
+                      label="Date"
+                      value={safeFormatDate(conversation.timestamp, 'MMM d, yyyy')}
+                    />
+
+                    {/* Time */}
+                    <PropertyRow
+                      icon={Clock}
+                      label="Time"
+                      value={safeFormatDate(conversation.timestamp, 'HH:mm')}
+                    />
+
+                    {/* Model */}
+                    {conversation.model && (
+                      <PropertyRow
+                        icon={Cpu}
+                        label="Model"
+                        value={
+                          <Badge variant="secondary" className="text-xs font-normal">
+                            {formatModelName(conversation.model)}
+                          </Badge>
+                        }
+                      />
+                    )}
+
+                    {/* Messages */}
+                    <PropertyRow
+                      icon={MessageSquare}
+                      label="Messages"
+                      value={`${conversation.messageCount}`}
+                    />
+
+                    {/* Tokens */}
+                    {conversation.totalTokens > 0 && (
+                      <PropertyRow
+                        icon={Sparkles}
+                        label="Tokens"
+                        value={formatNumber(conversation.totalTokens)}
+                      />
+                    )}
+
+                    {/* Tool Calls */}
+                    {totalToolCalls > 0 && (
+                      <PropertyRow
+                        icon={Wrench}
+                        label="Tool Calls"
+                        value={`${totalToolCalls}`}
+                      />
+                    )}
+
+                    {/* Session ID */}
+                    <PropertyRow
+                      icon={Hash}
+                      label="Session"
+                      value={
+                        <span className="font-mono text-xs truncate max-w-[120px]" title={conversation.sessionId}>
+                          {conversation.sessionId.slice(0, 8)}...
+                        </span>
+                      }
+                    />
+                  </div>
+
+                  {/* Token breakdown */}
+                  {(conversation.inputTokens > 0 || conversation.outputTokens > 0) && (
+                    <>
+                      <Separator />
+                      <div>
+                        <h3 className="text-xs font-medium text-muted-foreground mb-3">Token Breakdown</h3>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Input</span>
+                            <span className="font-mono">{formatNumber(conversation.inputTokens || 0)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Output</span>
+                            <span className="font-mono">{formatNumber(conversation.outputTokens || 0)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Tools used */}
+                  {Object.keys(toolUsage).length > 0 && (
+                    <>
+                      <Separator />
+                      <div>
+                        <h3 className="text-xs font-medium text-muted-foreground mb-3">Tools Used</h3>
+                        <div className="flex flex-wrap gap-1.5">
+                          {Object.entries(toolUsage)
+                            .sort(([, a], [, b]) => b - a)
+                            .slice(0, 10)
+                            .map(([tool, count]) => (
+                              <Badge key={tool} variant="outline" className="text-xs font-normal">
+                                {tool} <span className="ml-1 text-muted-foreground">{count}</span>
+                              </Badge>
+                            ))}
+                        </div>
+                      </div>
+                    </>
                   )}
                 </div>
-              </>
-            )}
-          </div>
+              </ScrollArea>
+            </div>
+          )}
         </div>
       </div>
+    </TooltipProvider>
+  );
+}
 
-      {/* Content */}
-      <Tabs defaultValue="formatted" className="flex-1 flex flex-col min-h-0">
-        <div className="border-b">
-          <div className="max-w-7xl mx-auto px-6">
-            <TabsList>
-              <TabsTrigger value="formatted">Conversation</TabsTrigger>
-              <TabsTrigger value="raw">Raw JSON</TabsTrigger>
-            </TabsList>
-          </div>
-        </div>
+interface PropertyRowProps {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: React.ReactNode;
+}
 
-        <TabsContent value="formatted" className="flex-1 min-h-0 mt-0">
-          <ScrollArea className="h-full">
-            <div className="max-w-7xl mx-auto px-6 py-8">
-              {conversation.messages.map((msg) => (
-                <ChatMessage key={msg.uuid} message={msg} />
-              ))}
-            </div>
-          </ScrollArea>
-        </TabsContent>
-
-        <TabsContent value="raw" className="flex-1 min-h-0 mt-0 overflow-hidden">
-          <div className="h-full max-w-7xl mx-auto px-6 py-8">
-            <MonacoCodeBlock
-              code={JSON.stringify(conversation, null, 2)}
-              language="json"
-              maxHeight={9999}
-            />
-          </div>
-        </TabsContent>
-      </Tabs>
+function PropertyRow({ icon: Icon, label, value }: PropertyRowProps) {
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <Icon className="h-4 w-4" />
+        <span className="text-sm">{label}</span>
+      </div>
+      <div className="text-sm">{value}</div>
     </div>
   );
 }

@@ -1,9 +1,9 @@
 import { Link } from 'react-router';
-import { format } from 'date-fns';
 import { FolderOpen, Calendar } from 'lucide-react';
 import type { Project } from '~/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
+import { safeFormatDate } from '~/lib/stats';
 
 interface ProjectCardProps {
   project: Project;
@@ -35,7 +35,7 @@ export function ProjectCard({ project, onClick, isSelected }: ProjectCardProps) 
           <CardDescription className="flex items-center gap-4 mt-2">
             <span className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              {format(project.lastModified, 'MMM dd, yyyy')}
+              {safeFormatDate(project.lastModified, 'MMM dd, yyyy', 'Never')}
             </span>
           </CardDescription>
         </CardHeader>

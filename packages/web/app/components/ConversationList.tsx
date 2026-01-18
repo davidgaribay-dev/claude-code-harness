@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { format } from 'date-fns';
 import type { Conversation } from '~/lib/types';
 import {
   Table,
@@ -12,7 +11,7 @@ import {
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { formatNumber, formatModelName } from '~/lib/stats';
+import { formatNumber, formatModelName, safeFormatDate, safeParseDate } from '~/lib/stats';
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -27,7 +26,9 @@ export function ConversationList({ conversations, onSelectConversation }: Conver
   const sortedConversations = [...conversations].sort((a, b) => {
     switch (sortBy) {
       case 'date':
-        return b.timestamp.getTime() - a.timestamp.getTime();
+        const dateA = safeParseDate(a.timestamp);
+        const dateB = safeParseDate(b.timestamp);
+        return (dateB?.getTime() || 0) - (dateA?.getTime() || 0);
       case 'messages':
         return b.messageCount - a.messageCount;
       case 'tokens':
@@ -73,7 +74,7 @@ export function ConversationList({ conversations, onSelectConversation }: Conver
                 onClick={() => onSelectConversation(conversation)}
               >
                 <TableCell className="whitespace-nowrap">
-                  {format(conversation.timestamp, 'MMM dd, yyyy HH:mm')}
+                  {safeFormatDate(conversation.timestamp, 'MMM dd, yyyy HH:mm')}
                 </TableCell>
                 <TableCell className="max-w-md truncate">
                   {conversation.preview}

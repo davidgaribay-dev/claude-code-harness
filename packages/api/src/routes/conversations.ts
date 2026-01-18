@@ -1,127 +1,61 @@
 import { Hono } from 'hono';
-import { getDb, schema } from '@/db/client';
-import { eq, or, ilike, sql, desc, and } from 'drizzle-orm';
-import { isValidId, validateSearchQuery } from '@/utils/validation';
-import { SEARCH_CONFIG } from '@/utils/constants';
+import { getConversation, searchConversations, getRecentConversations, toggleConversationStar } from '../db/queries';
 
 const app = new Hono();
 
-// GET /conversations/:id - Get conversation with messages
-app.get('/:id', async (c) => {
+// POST /api/conversations/:id/star - Toggle star status for a conversation
+app.post('/:id/star', async (c) => {
   try {
-    const db = getDb();
-    const conversationId = c.req.param('id');
-
-    // Validate conversation ID format
-    if (!isValidId(conversationId)) {
-      return c.json({ error: 'Invalid conversation ID format' }, 400);
-    }
-
-    // Try to find by UUID first, then by rewind conversation ID
-    let conversation = await db.query.conversations.findFirst({
-      where: eq(schema.conversations.id, conversationId),
-      with: {
-        messages: {
-          orderBy: (messages, { asc }) => [asc(messages.timestamp)],
-          with: {
-            contentBlocks: {
-              orderBy: (blocks, { asc }) => [asc(blocks.sequence)],
-            },
-          },
-        },
-        project: true,
-      },
-    });
-
-    // If not found by UUID, try by rewind conversation ID
-    if (!conversation) {
-      conversation = await db.query.conversations.findFirst({
-        where: eq(schema.conversations.conversationId, conversationId),
-        with: {
-          messages: {
-            orderBy: (messages, { asc }) => [asc(messages.timestamp)],
-            with: {
-              contentBlocks: {
-                orderBy: (blocks, { asc }) => [asc(blocks.sequence)],
-              },
-            },
-          },
-          project: true,
-        },
-      });
-    }
-
-    if (!conversation) {
-      return c.json({ error: 'Conversation not found' }, 404);
-    }
-
-    return c.json(conversation);
+    const sessionId = c.req.param('id');
+    const starred = await toggleConversationStar(sessionId);
+    return c.json({ starred });
   } catch (error) {
-    console.error('Failed to fetch conversation:', error);
-    return c.json({ error: 'Failed to fetch conversation' }, 500);
+    console.error('Error toggling star:', error);
+    return c.json({ error: 'Failed to toggle star' }, 500);
   }
 });
 
-// GET /conversations/search?q=query - Search conversations
-app.get('/search', async (c) => {
+// GET /api/conversations/recent - Get recent conversations across all projects
+app.get('/recent', async (c) => {
   try {
-    const db = getDb();
-    const query = c.req.query('q');
-    const projectId = c.req.query('projectId');
-
-    // Validate search query
-    const validation = validateSearchQuery(query);
-    if (!validation.valid) {
-      return c.json({ error: validation.error }, 400);
-    }
-
-    // Validate projectId if provided
-    if (projectId && !isValidId(projectId)) {
-      return c.json({ error: 'Invalid project ID format' }, 400);
-    }
-
-    const searchPattern = `%${validation.sanitized}%`;
-
-    // Build where clause using proper parameterized queries with type-safe composition
-    const searchConditions = or(
-      ilike(schema.conversations.title, searchPattern),
-      sql`EXISTS (
-        SELECT 1 FROM ${schema.messages}
-        WHERE ${schema.messages.conversationId} = ${schema.conversations.id}
-        AND ${schema.messages.content} ILIKE ${searchPattern}
-      )`
-    );
-
-    // Safely add projectId filter if provided
-    const whereClause = projectId
-      ? and(searchConditions, eq(schema.conversations.projectId, projectId))
-      : searchConditions;
-
-    const conversations = await db
-      .select({
-        id: schema.conversations.id,
-        conversationId: schema.conversations.conversationId,
-        sessionId: schema.conversations.sessionId,
-        title: schema.conversations.title,
-        model: schema.conversations.model,
-        totalTokens: schema.conversations.totalTokens,
-        inputTokens: schema.conversations.inputTokens,
-        outputTokens: schema.conversations.outputTokens,
-        createdAt: schema.conversations.createdAt,
-        updatedAt: schema.conversations.updatedAt,
-        projectId: schema.conversations.projectId,
-        projectName: schema.projects.name,
-      })
-      .from(schema.conversations)
-      .innerJoin(schema.projects, eq(schema.conversations.projectId, schema.projects.id))
-      .where(whereClause)
-      .orderBy(desc(schema.conversations.updatedAt))
-      .limit(SEARCH_CONFIG.MAX_RESULTS);
-
+    const limit = parseInt(c.req.query('limit') || '100', 10);
+    const conversations = await getRecentConversations(Math.min(limit, 500));
     return c.json(conversations);
   } catch (error) {
-    console.error('Failed to search conversations:', error);
+    console.error('Error fetching recent conversations:', error);
+    return c.json({ error: 'Failed to fetch recent conversations' }, 500);
+  }
+});
+
+// GET /api/conversations/search - Search conversations
+app.get('/search', async (c) => {
+  try {
+    const query = c.req.query('q') || '';
+    const projectId = c.req.query('projectId');
+
+    if (!query) {
+      return c.json([]);
+    }
+
+    const conversations = await searchConversations(query, projectId);
+    return c.json(conversations);
+  } catch (error) {
+    console.error('Error searching conversations:', error);
     return c.json({ error: 'Failed to search conversations' }, 500);
+  }
+});
+
+// GET /api/conversations/:id - Get single conversation with messages
+app.get('/:id', async (c) => {
+  try {
+    const conversation = await getConversation(c.req.param('id'));
+    if (!conversation) {
+      return c.json({ error: 'Conversation not found' }, 404);
+    }
+    return c.json(conversation);
+  } catch (error) {
+    console.error('Error fetching conversation:', error);
+    return c.json({ error: 'Failed to fetch conversation' }, 500);
   }
 });
 

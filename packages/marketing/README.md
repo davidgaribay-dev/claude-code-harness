@@ -49,7 +49,7 @@ src/
 This package shares the same design language as the main web application:
 
 - **Colors**: HSL-based color system with light/dark theme support
-- **Typography**: Inter font family with system fallbacks
+- **Typography**: Nunito Sans font family with system fallbacks
 - **Spacing**: Tailwind's default spacing scale
 - **Border Radius**: Custom radius scale (sm to 4xl)
 - **Components**: Matches the visual style of the web package

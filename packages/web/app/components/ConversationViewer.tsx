@@ -1,4 +1,3 @@
-import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
 import type { Conversation } from '~/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -7,7 +6,7 @@ import { ChatMessage } from './ChatMessage';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { MonacoCodeBlock } from './MonacoCodeBlock';
-import { formatNumber, formatModelName } from '~/lib/stats';
+import { formatNumber, formatModelName, safeFormatDate } from '~/lib/stats';
 
 interface ConversationViewerProps {
   conversation: Conversation;
@@ -27,7 +26,7 @@ export function ConversationViewer({ conversation, onBack }: ConversationViewerP
         </div>
         <div className="flex items-center gap-2 flex-wrap ml-12">
           <span className="text-sm text-muted-foreground">
-            {format(conversation.timestamp, 'MMM dd, yyyy HH:mm')}
+            {safeFormatDate(conversation.timestamp, 'MMM dd, yyyy HH:mm')}
           </span>
           <span className="text-muted-foreground">•</span>
           <Badge variant="outline">{conversation.messageCount} messages</Badge>
@@ -58,7 +57,7 @@ export function ConversationViewer({ conversation, onBack }: ConversationViewerP
 
         <TabsContent value="formatted" className="flex-1 min-h-0 mt-0">
           <ScrollArea className="h-full">
-            <div className="divide-y divide-border">
+            <div className="py-2">
               {conversation.messages.map(msg => (
                 <ChatMessage key={msg.uuid} message={msg} />
               ))}

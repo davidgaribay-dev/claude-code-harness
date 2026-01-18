@@ -1,45 +1,41 @@
+import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
-import { serve } from '@hono/node-server';
-import * as dotenv from 'dotenv';
 
-import projectsRouter from '@/routes/projects';
-import conversationsRouter from '@/routes/conversations';
-import etlRouter from '@/routes/etl';
-import settingsRouter from '@/routes/settings';
-import { log } from '@/logger';
-import { validateEnvironment } from '@/utils/validation';
-
-dotenv.config({ path: '../../.env' });
-
-// Validate environment variables before starting the server
-const envValidation = validateEnvironment();
-if (!envValidation.valid) {
-  log.error('Environment validation failed:');
-  envValidation.errors.forEach(error => log.error(`  - ${error}`));
-  process.exit(1);
-}
+import { verifyConnection, closeDriver, initializeSchema } from './db/neo4j';
+import projectsRoutes from './routes/projects';
+import conversationsRoutes from './routes/conversations';
+import statsRoutes from './routes/stats';
+import ingestRoutes from './routes/ingest';
 
 const app = new Hono();
 
 // Middleware
 app.use('*', logger());
-app.use('*', cors({
-  origin: process.env.WEB_URL || 'http://localhost:5173',
-  credentials: true,
-}));
+app.use(
+  '*',
+  cors({
+    origin: ['http://localhost:8430', 'http://localhost:5173'],
+    credentials: true,
+  })
+);
 
 // Health check
-app.get('/health', (c) => {
-  return c.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/health', async (c) => {
+  const connected = await verifyConnection();
+  return c.json({
+    status: connected ? 'healthy' : 'unhealthy',
+    neo4j: connected ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString(),
+  });
 });
 
-// Routes
-app.route('/api/projects', projectsRouter);
-app.route('/api/conversations', conversationsRouter);
-app.route('/api/etl', etlRouter);
-app.route('/api/settings', settingsRouter);
+// API Routes
+app.route('/api/projects', projectsRoutes);
+app.route('/api/conversations', conversationsRoutes);
+app.route('/api/stats', statsRoutes);
+app.route('/api/ingest', ingestRoutes);
 
 // 404 handler
 app.notFound((c) => {
@@ -48,53 +44,46 @@ app.notFound((c) => {
 
 // Error handler
 app.onError((err, c) => {
-  log.error('Server error:', err);
-
-  // In development, return detailed error information
-  // In production, return generic error message
-  const isDevelopment = process.env.NODE_ENV === 'development';
-
-  return c.json(
-    {
-      error: 'Internal server error',
-      ...(isDevelopment && {
-        message: err.message,
-        stack: err.stack,
-      }),
-    },
-    500
-  );
+  console.error('Server error:', err);
+  return c.json({ error: 'Internal server error' }, 500);
 });
 
-const port = parseInt(process.env.API_PORT || '3000');
+const port = parseInt(process.env.PORT || '8429', 10);
 
-log.info(`🚀 API Server starting on port ${port}...`);
+console.log(`Starting Rewind API on port ${port}...`);
+
+// Verify Neo4j connection and initialize schema on startup
+verifyConnection().then(async (connected) => {
+  if (connected) {
+    console.log('✓ Connected to Neo4j');
+    // Initialize database schema (constraints & indexes)
+    try {
+      await initializeSchema();
+      console.log('✓ Database schema initialized');
+    } catch (error) {
+      console.error('⚠ Failed to initialize schema:', error);
+    }
+  } else {
+    console.warn('⚠ Could not connect to Neo4j - some features may not work');
+  }
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('Shutting down...');
+  await closeDriver();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('Shutting down...');
+  await closeDriver();
+  process.exit(0);
+});
 
 serve({
   fetch: app.fetch,
   port,
-}, (info) => {
-  log.info(`✅ API Server running at http://localhost:${info.port}`);
 });
 
-// Graceful shutdown handler
-async function gracefulShutdown(signal: string) {
-  log.info(`${signal} received, starting graceful shutdown...`);
-
-  try {
-    // Close database connection
-    const { closeDb } = await import('@/db/client');
-    await closeDb();
-    log.info('Database connection closed');
-
-    // Exit process
-    process.exit(0);
-  } catch (error) {
-    log.error('Error during shutdown:', error);
-    process.exit(1);
-  }
-}
-
-// Register shutdown handlers
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+console.log(`✓ Server running at http://localhost:${port}`);

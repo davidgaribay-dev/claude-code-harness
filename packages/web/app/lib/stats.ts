@@ -58,8 +58,15 @@ export function calculateStats(projects: Project[]): Stats {
         }
 
         // Track daily activity
-        const dayKey = format(startOfDay(conversation.timestamp), 'yyyy-MM-dd');
-        dailyActivity[dayKey] = (dailyActivity[dayKey] || 0) + 1;
+        if (conversation.timestamp) {
+          const timestamp = conversation.timestamp instanceof Date
+            ? conversation.timestamp
+            : new Date(conversation.timestamp);
+          if (!isNaN(timestamp.getTime())) {
+            const dayKey = format(startOfDay(timestamp), 'yyyy-MM-dd');
+            dailyActivity[dayKey] = (dailyActivity[dayKey] || 0) + 1;
+          }
+        }
       });
     }
   });
@@ -101,6 +108,28 @@ export function calculateStats(projects: Project[]): Stats {
  */
 export function formatNumber(num: number): string {
   return num.toLocaleString();
+}
+
+/**
+ * Safely parse a date value that might be a Date, string, or invalid
+ */
+export function safeParseDate(value: unknown): Date | null {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value as string);
+  return isNaN(date.getTime()) ? null : date;
+}
+
+/**
+ * Safely format a date with fallback
+ */
+export function safeFormatDate(
+  value: unknown,
+  formatStr: string,
+  fallback = 'Unknown'
+): string {
+  const date = safeParseDate(value);
+  if (!date) return fallback;
+  return format(date, formatStr);
 }
 
 /**

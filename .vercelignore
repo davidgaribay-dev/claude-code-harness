@@ -1,7 +1,7 @@
-# Exclude all packages except marketing and shared
-packages/api
+# Exclude all packages except marketing
 packages/web
-packages/cli
+packages/api
+packages/shared
 
 # Exclude development files
 .env
@@ -10,16 +10,10 @@ packages/cli
 *.log
 logs/
 
-# Exclude database
-/drizzle/
-
 # Exclude Docker files
 docker-compose*.yml
 Dockerfile*
 .dockerignore
-
-# Exclude documentation not needed for build
-FEATURES.md
 
 # Exclude README assets (only needed for GitHub)
 assets/

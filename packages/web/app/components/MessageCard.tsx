@@ -1,12 +1,11 @@
-import { format } from 'date-fns';
 import { User, Bot, ChevronDown } from 'lucide-react';
-import type { ConversationMessage, AssistantMessage } from '@rewind/shared';
+import type { ConversationMessage, AssistantMessage } from '~/lib/types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/card';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Button } from './ui/button';
-import { formatNumber } from '~/lib/stats';
+import { formatNumber, safeFormatDate } from '~/lib/stats';
 
 interface MessageCardProps {
   message: ConversationMessage;
@@ -42,7 +41,7 @@ export function MessageCard({ message }: MessageCardProps) {
               {isUser ? 'User' : isAssistant ? 'Assistant' : 'Queue Operation'}
             </CardTitle>
             <CardDescription className="text-xs">
-              {format(new Date(message.timestamp), 'MMM dd, yyyy HH:mm:ss')}
+              {safeFormatDate(message.timestamp, 'MMM dd, yyyy HH:mm:ss')}
             </CardDescription>
           </div>
           {message.type === 'user' && (

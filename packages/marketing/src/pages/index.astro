@@ -466,12 +466,12 @@ import { BLOB_URLS } from '@/utils/blob';
           </h3>
           <ul class="space-y-3 text-xs text-muted-foreground">
             <li>• Hono 4.7 (ultra-fast web framework)</li>
-            <li>• Drizzle ORM 0.45 with PostgreSQL</li>
+            <li>• Neo4j 5 graph database</li>
             <li>• TypeScript strict mode (100% type safe)</li>
-            <li>• Chokidar for file system watching</li>
-            <li>• Winston for structured logging</li>
-            <li>• Server-Sent Events for real-time updates</li>
-            <li>• Docker Compose for local PostgreSQL</li>
+            <li>• Real-time hook ingestion</li>
+            <li>• Connection pooling & managed transactions</li>
+            <li>• RESTful API with health checks</li>
+            <li>• Docker Compose for local development</li>
             <li>• pnpm workspace monorepo architecture</li>
           </ul>
         </div>
@@ -550,20 +550,18 @@ import { BLOB_URLS } from '@/utils/blob';
               Copy
             </button>
           </div>
-          <pre id="quick-start-code" class="text-xs overflow-x-auto"><code># Clone and configure
+          <pre id="quick-start-code" class="text-xs overflow-x-auto"><code># Clone and start
 git clone https://github.com/davidgaribay-dev/rewind.git
 cd rewind
-cp .env.example .env
-
-# Set your Claude Code data path in .env (defaults to ~/.claude/projects)
-# REWIND_DATA_PATH=~/.claude/projects
-
-# Start everything (one command!)
-docker-compose up -d
+docker compose up -d
 
 # That's it! 🎉
-# Web: http://localhost:8430
-# API: http://localhost:8429</code></pre>
+# Web UI: http://localhost:8430
+# API: http://localhost:8429
+# Neo4j: http://localhost:7474
+
+# Set up Claude Code hook for real-time ingestion
+# See README.md for hook configuration</code></pre>
         </div>
 
         <div class="flex flex-col sm:flex-row gap-4 justify-center animate-card">

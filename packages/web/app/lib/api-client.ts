@@ -1,33 +1,6 @@
+import type { Project, Conversation } from './types';
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8429';
-
-interface ProjectWithStats {
-  id: string;
-  name: string;
-  path: string;
-  conversationCount: number;
-  messageCount: number;
-  lastActivity: string | null;
-  createdAt: string;
-}
-
-interface ConversationWithMessages {
-  id: string;
-  conversationId: string;
-  title: string | null;
-  createdAt: string;
-  updatedAt: string;
-  messageCount?: number;
-  messages?: Array<{
-    id: string;
-    role: string;
-    content: string;
-    timestamp: string;
-  }>;
-  project?: {
-    id: string;
-    name: string;
-  };
-}
 
 async function handleResponse<T>(response: Response, errorMessage: string): Promise<T> {
   if (!response.ok) {
@@ -37,64 +10,58 @@ async function handleResponse<T>(response: Response, errorMessage: string): Prom
   return response.json();
 }
 
-export async function getAllProjects(): Promise<ProjectWithStats[]> {
+export async function getAllProjects(): Promise<Project[]> {
   const response = await fetch(`${API_URL}/api/projects`);
-  return handleResponse<ProjectWithStats[]>(response, 'Failed to fetch projects');
+  return handleResponse<Project[]>(response, 'Failed to fetch projects');
 }
 
-export async function getProjectById(projectId: string): Promise<ProjectWithStats> {
+export async function getProjectById(projectId: string): Promise<Project> {
   const response = await fetch(`${API_URL}/api/projects/${projectId}`);
-  return handleResponse<ProjectWithStats>(response, 'Failed to fetch project');
+  return handleResponse<Project>(response, 'Failed to fetch project');
 }
 
-export async function getConversationsByProjectId(
-  projectId: string
-): Promise<ConversationWithMessages[]> {
+export async function getConversationsByProjectId(projectId: string): Promise<Conversation[]> {
   const response = await fetch(`${API_URL}/api/projects/${projectId}/conversations`);
-  return handleResponse<ConversationWithMessages[]>(response, 'Failed to fetch conversations');
+  return handleResponse<Conversation[]>(response, 'Failed to fetch conversations');
 }
 
-export async function getConversationById(
-  conversationId: string
-): Promise<ConversationWithMessages> {
+export async function getConversationById(conversationId: string): Promise<Conversation> {
   const response = await fetch(`${API_URL}/api/conversations/${conversationId}`);
-  return handleResponse<ConversationWithMessages>(response, 'Failed to fetch conversation');
+  return handleResponse<Conversation>(response, 'Failed to fetch conversation');
 }
 
 export async function searchConversations(
   query: string,
   projectId?: string
-): Promise<ConversationWithMessages[]> {
+): Promise<Conversation[]> {
   const params = new URLSearchParams({ q: query });
   if (projectId) {
     params.append('projectId', projectId);
   }
 
   const response = await fetch(`${API_URL}/api/conversations/search?${params}`);
-  return handleResponse<ConversationWithMessages[]>(response, 'Failed to search conversations');
+  return handleResponse<Conversation[]>(response, 'Failed to search conversations');
 }
 
-export interface ETLStatus {
-  isRunning: boolean;
-  lastRun: string | null;
-  lastError: string | null;
-  lastSuccess: string | null;
+export async function getRecentConversations(limit = 100): Promise<(Conversation & { projectId: string; starred?: boolean; customName?: string })[]> {
+  const response = await fetch(`${API_URL}/api/conversations/recent?limit=${limit}`);
+  return handleResponse<(Conversation & { projectId: string; starred?: boolean; customName?: string })[]>(response, 'Failed to fetch recent conversations');
 }
 
-export async function triggerETL(): Promise<{ message: string; status: ETLStatus }> {
-  const response = await fetch(`${API_URL}/api/etl/run`, {
+export async function toggleConversationStar(sessionId: string): Promise<{ starred: boolean }> {
+  const response = await fetch(`${API_URL}/api/conversations/${sessionId}/star`, {
     method: 'POST',
   });
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to trigger ETL');
-  }
-  return response.json();
+  return handleResponse<{ starred: boolean }>(response, 'Failed to toggle star');
 }
 
-export async function getETLStatus(): Promise<ETLStatus> {
-  const response = await fetch(`${API_URL}/api/etl/status`);
-  return handleResponse<ETLStatus>(response, 'Failed to fetch ETL status');
+export async function renameConversation(sessionId: string, customName: string | null): Promise<{ customName: string | null }> {
+  const response = await fetch(`${API_URL}/api/conversations/${sessionId}/rename`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ customName }),
+  });
+  return handleResponse<{ customName: string | null }>(response, 'Failed to rename conversation');
 }
 
 export const apiClient = {
@@ -103,6 +70,7 @@ export const apiClient = {
   getConversationsByProjectId,
   getConversationById,
   searchConversations,
-  triggerETL,
-  getETLStatus,
+  getRecentConversations,
+  toggleConversationStar,
+  renameConversation,
 };

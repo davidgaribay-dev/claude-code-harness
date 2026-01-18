@@ -130,61 +130,64 @@ export function ToolResultBlock({ block, toolName }: ToolResultBlockProps) {
   };
 
   return (
-    <div className="my-2 relative">
+    <div className="mt-1 relative">
       {/* Visual connector line from tool use to result */}
-      <div className={`absolute left-5 -top-2 w-0.5 h-4 ${isError ? 'bg-destructive/30' : 'bg-green-500/30'}`} />
+      <div className="absolute left-5 -top-2 w-0.5 h-4 bg-border" />
 
-      <div className={`border rounded-lg overflow-hidden ${isError ? 'border-destructive/30 bg-destructive/10' : 'border-green-500/20 bg-green-500/10'}`}>
+      <div className={`border rounded-lg overflow-hidden ${isError ? 'border-destructive/30 bg-destructive/5' : ''}`}>
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-          <div className="flex items-start gap-3 px-4 py-3">
-            <div className={`flex items-center justify-center h-8 w-8 rounded-lg border flex-shrink-0 ${isError ? 'bg-destructive/20 border-destructive/40' : 'bg-green-500/20 border-green-500/40'}`}>
-              {isError ? (
-                <AlertCircle className="h-4 w-4 text-destructive" />
-              ) : (
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-              )}
-            </div>
-            <div className="flex-1 min-w-0 pt-0.5">
-              <div className="flex items-center gap-2 flex-wrap mb-1">
-                <span className={`font-semibold text-sm ${isError ? 'text-destructive' : 'text-green-600'}`}>
-                  {isError ? 'Tool Error' : 'Tool Result'}
-                </span>
-                <Badge variant={isError ? 'destructive' : 'outline'} className={`text-xs h-5 ${isError ? '' : 'border-green-500/40 bg-green-500/10 text-green-600'}`}>
-                  {isError ? 'Failed' : 'Success'}
-                </Badge>
-                {hasNumbers && language !== 'text' && (
-                  <Badge variant="secondary" className="text-xs h-5">
-                    {language}
-                  </Badge>
+          <CollapsibleTrigger asChild>
+            <button className="w-full text-left flex items-start gap-3 px-4 py-3 hover:bg-muted/30 transition-colors cursor-pointer">
+              <div className={`flex items-center justify-center h-8 w-8 rounded-lg border flex-shrink-0 bg-muted ${isError ? 'border-destructive/40' : ''}`}>
+                {isError ? (
+                  <AlertCircle className="h-4 w-4 text-destructive" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
                 )}
               </div>
-              {!shouldCollapse && !isCodeLike && (
-                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{preview}</p>
-              )}
-            </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 px-2 opacity-60 hover:opacity-100"
-                onClick={handleCopy}
-                title="Copy result"
-              >
-                {copied ? (
-                  <Check className="h-3.5 w-3.5" />
-                ) : (
-                  <Copy className="h-3.5 w-3.5" />
+              <div className="flex-1 min-w-0 pt-0.5">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className={`font-semibold text-sm ${isError ? 'text-destructive' : ''}`}>
+                    {isError ? 'Tool Error' : 'Result'}
+                  </span>
+                  {isError && (
+                    <Badge variant="destructive" className="text-xs h-5">
+                      Failed
+                    </Badge>
+                  )}
+                  {hasNumbers && language !== 'text' && (
+                    <Badge variant="secondary" className="text-xs h-5">
+                      {language}
+                    </Badge>
+                  )}
+                </div>
+                {!shouldCollapse && !isCodeLike && (
+                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{preview}</p>
                 )}
-              </Button>
-              {shouldCollapse && (
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                    <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                  </Button>
-                </CollapsibleTrigger>
-              )}
-            </div>
-          </div>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 opacity-60 hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCopy();
+                  }}
+                  title="Copy result"
+                >
+                  {copied ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                </Button>
+                {shouldCollapse && (
+                  <ChevronDown className={`h-4 w-4 transition-transform text-muted-foreground ${isOpen ? 'rotate-180' : ''}`} />
+                )}
+              </div>
+            </button>
+          </CollapsibleTrigger>
 
           {shouldCollapse ? (
             <CollapsibleContent>

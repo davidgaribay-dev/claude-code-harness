@@ -2,6 +2,86 @@ import type { ConversationMessage, Conversation, Project, AssistantMessage, Text
 import { log } from './logger';
 
 /**
+ * Special tags used by Claude Code that should be parsed and rendered nicely
+ * These are XML-like tags embedded in text content by the Claude Code CLI/extension
+ */
+export type SpecialTagType =
+  | 'ide_opened_file'        // File opened in IDE
+  | 'ide_selection'          // Code selected in IDE
+  | 'system-reminder'        // System reminders injected by Claude Code
+  | 'local-command-stdout'   // Output from local commands
+  | 'local-command-stderr'   // Error output from local commands
+  | 'local-command-caveat'   // Caveats about local command output
+  | 'command-name'           // Slash command name
+  | 'command-message'        // Slash command message
+  | 'command-args'           // Slash command arguments
+  | 'env'                    // Environment info
+  | 'ide_diagnostics'        // IDE diagnostics/errors
+  | 'user-prompt-submit-hook'; // Hook feedback
+
+export interface ParsedContentPart {
+  type: 'text' | 'special_tag';
+  content: string;
+  tagType?: SpecialTagType;
+}
+
+/**
+ * Parse text content to extract special XML-like tags used by Claude Code
+ */
+export function parseSpecialTags(text: string): ParsedContentPart[] {
+  const parts: ParsedContentPart[] = [];
+
+  // Pattern to match special tags: <tag_name>content</tag_name>
+  const tagPattern = /<(ide_opened_file|ide_selection|system-reminder|local-command-stdout|local-command-stderr|local-command-caveat|command-name|command-message|command-args|env|ide_diagnostics|user-prompt-submit-hook)>([\s\S]*?)<\/\1>/g;
+
+  let lastIndex = 0;
+  let match;
+
+  while ((match = tagPattern.exec(text)) !== null) {
+    // Add text before this tag
+    if (match.index > lastIndex) {
+      const textBefore = text.slice(lastIndex, match.index).trim();
+      if (textBefore) {
+        parts.push({ type: 'text', content: textBefore });
+      }
+    }
+
+    // Add the special tag
+    parts.push({
+      type: 'special_tag',
+      tagType: match[1] as SpecialTagType,
+      content: match[2].trim()
+    });
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Add remaining text after last tag
+  if (lastIndex < text.length) {
+    const remainingText = text.slice(lastIndex).trim();
+    if (remainingText) {
+      parts.push({ type: 'text', content: remainingText });
+    }
+  }
+
+  // If no tags found, return original text
+  if (parts.length === 0 && text.trim()) {
+    parts.push({ type: 'text', content: text });
+  }
+
+  return parts;
+}
+
+/**
+ * Strip special tags from text for preview purposes
+ */
+export function stripSpecialTags(text: string): string {
+  return text
+    .replace(/<(ide_opened_file|ide_selection|system-reminder|local-command-stdout|local-command-stderr|local-command-caveat|command-name|command-message|command-args|env|ide_diagnostics|user-prompt-submit-hook)>[\s\S]*?<\/\1>/g, '')
+    .trim();
+}
+
+/**
  * Type guard to check if a message is an AssistantMessage
  */
 function isAssistantMessage(message: ConversationMessage['message']): message is AssistantMessage {
@@ -29,6 +109,7 @@ export async function parseJSONLFile(file: File): Promise<ConversationMessage[]>
 
 /**
  * Extract a preview from conversation messages (first user message)
+ * Strips special tags and combines all text blocks
  */
 export function extractPreview(messages: ConversationMessage[]): string {
   const firstUserMessage = messages.find(msg => msg.type === 'user');
@@ -38,12 +119,16 @@ export function extractPreview(messages: ConversationMessage[]): string {
   const content = firstUserMessage.message.content;
 
   if (typeof content === 'string') {
-    return content.substring(0, 100);
+    const cleaned = stripSpecialTags(content);
+    return cleaned.substring(0, 100) || 'No text content';
   }
 
   if (Array.isArray(content)) {
-    const textContent = content.find(c => c.type === 'text') as TextBlock | undefined;
-    return textContent?.text?.substring(0, 100) || 'No text content';
+    // Combine all text blocks, strip special tags
+    const textBlocks = content.filter(c => c.type === 'text') as TextBlock[];
+    const combinedText = textBlocks.map(b => b.text).join(' ');
+    const cleaned = stripSpecialTags(combinedText);
+    return cleaned.substring(0, 100) || 'No text content';
   }
 
   return 'Unknown content type';

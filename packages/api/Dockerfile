@@ -1,8 +1,7 @@
 FROM node:20-alpine AS base
 
-# Install pnpm and netcat for healthchecks
-RUN corepack enable && corepack prepare pnpm@latest --activate && \
-    apk add --no-cache netcat-openbsd
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@10 --activate
 
 # Build stage
 FROM base AS builder
@@ -13,33 +12,37 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY packages/api/package.json ./packages/api/
 COPY packages/shared/package.json ./packages/shared/
 
-# Install ALL dependencies (including dev deps for drizzle-kit)
+# Install dependencies
 RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY packages/api ./packages/api
 COPY packages/shared ./packages/shared
 
-# Build packages
-RUN pnpm --filter @rewind/shared build
+# Build
 RUN pnpm --filter @rewind/api build
 
 # Production stage
-FROM base AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Copy workspace metadata and dependencies
-COPY --from=builder /app/package.json /app/pnpm-workspace.yaml /app/pnpm-lock.yaml ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages/api ./packages/api
-COPY --from=builder /app/packages/shared ./packages/shared
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@10 --activate
 
-# Copy entrypoint script
-COPY packages/api/docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# Copy workspace files for production install
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY packages/api/package.json ./packages/api/
+COPY packages/shared/package.json ./packages/shared/
 
-# Expose port
-EXPOSE 3000
+# Install production dependencies only
+RUN pnpm install --frozen-lockfile --prod
 
-# Use entrypoint for migrations
-ENTRYPOINT ["docker-entrypoint.sh"]
+# Copy built files
+COPY --from=builder /app/packages/api/dist ./packages/api/dist
+COPY --from=builder /app/packages/shared/src ./packages/shared/src
+
+WORKDIR /app/packages/api
+
+EXPOSE 8429
+
+CMD ["node", "dist/index.js"]

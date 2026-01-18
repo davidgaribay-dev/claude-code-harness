@@ -1,91 +1,76 @@
 import { useState } from 'react';
-import { ChevronDown, Terminal, FileText, Search, Globe, Code, Wrench, Copy, Check, Pen, FileSearch, Play } from 'lucide-react';
+import { ChevronDown, Terminal, FileText, Search, Globe, Code, Wrench, Copy, Check, Pen, FileSearch, Play, Clock, Cpu, Coins } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { MonacoCodeBlock } from './MonacoCodeBlock';
 import { MonacoDiffBlock } from './MonacoDiffBlock';
-import type { ToolUseBlock as ToolUseBlockType } from '~/lib/types';
+import { formatNumber, safeFormatDate } from '~/lib/stats';
+import type { ToolUseBlock as ToolUseBlockType, Usage } from '~/lib/types';
 
 interface ToolUseBlockProps {
   block: ToolUseBlockType;
+  timestamp?: string;
+  model?: string | null;
+  usage?: Usage | null;
 }
 
-// Map tool names to icons, colors, and metadata
-const toolConfig: Record<string, { icon: typeof Terminal; color: string; bgColor: string; label: string; category: string }> = {
+// Map tool names to icons and metadata - using consistent neutral colors
+const toolConfig: Record<string, { icon: typeof Terminal; label: string; category: string }> = {
   Bash: {
     icon: Terminal,
-    color: 'text-green-600',
-    bgColor: 'bg-green-500/10 border-green-500/20',
     label: 'Terminal',
     category: 'Execution'
   },
   Read: {
     icon: FileText,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-500/10 border-blue-500/20',
     label: 'Read File',
     category: 'File System'
   },
   Grep: {
     icon: Search,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-500/10 border-purple-500/20',
     label: 'Search Content',
     category: 'Search'
   },
   Glob: {
     icon: FileSearch,
-    color: 'text-violet-600',
-    bgColor: 'bg-violet-500/10 border-violet-500/20',
     label: 'Find Files',
     category: 'Search'
   },
   Write: {
     icon: Pen,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-500/10 border-orange-500/20',
     label: 'Write File',
     category: 'File System'
   },
   Edit: {
     icon: Code,
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-500/10 border-amber-500/20',
     label: 'Edit File',
     category: 'File System'
   },
   WebFetch: {
     icon: Globe,
-    color: 'text-cyan-600',
-    bgColor: 'bg-cyan-500/10 border-cyan-500/20',
     label: 'Fetch Web Content',
     category: 'Web'
   },
   WebSearch: {
     icon: Search,
-    color: 'text-sky-600',
-    bgColor: 'bg-sky-500/10 border-sky-500/20',
     label: 'Search Web',
     category: 'Web'
   },
   Task: {
     icon: Play,
-    color: 'text-indigo-600',
-    bgColor: 'bg-indigo-500/10 border-indigo-500/20',
     label: 'Execute Task',
     category: 'Agent'
   },
 };
 
-export function ToolUseBlock({ block }: ToolUseBlockProps) {
+export function ToolUseBlock({ block, timestamp, model, usage }: ToolUseBlockProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const config = toolConfig[block.name] || {
     icon: Wrench,
-    color: 'text-foreground',
-    bgColor: 'bg-muted border-border',
     label: block.name,
     category: 'Tool'
   };
@@ -108,42 +93,98 @@ export function ToolUseBlock({ block }: ToolUseBlockProps) {
   const primaryParam = Object.entries(otherInputs)[0];
 
   return (
-    <div className={`my-2 border rounded-lg overflow-hidden ${config.bgColor}`}>
+    <div className="border rounded-lg overflow-hidden">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <div className="flex items-start gap-3 px-4 py-3">
-          <div className={`flex items-center justify-center h-8 w-8 rounded-lg bg-background border flex-shrink-0 ${config.color}`}>
-            <Icon className="h-4 w-4" />
-          </div>
-          <div className="flex-1 min-w-0 pt-0.5">
-            <div className="flex items-center gap-2 flex-wrap mb-1">
-              <span className={`font-semibold text-sm ${config.color}`}>{config.label}</span>
-              <Badge variant="outline" className="text-xs font-mono h-5">
-                {block.name}
-              </Badge>
-              <Badge variant="secondary" className="text-xs h-5">
-                {config.category}
-              </Badge>
+        <CollapsibleTrigger asChild>
+          <button className="w-full text-left flex items-start gap-3 px-4 py-3 hover:bg-muted/30 transition-colors cursor-pointer">
+            <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-muted border flex-shrink-0 text-foreground">
+              <Icon className="h-4 w-4" />
             </div>
-            {description && (
-              <p className="text-xs text-foreground/80 mb-2 leading-relaxed">{description}</p>
-            )}
-            {!isOpen && primaryParam && (
-              <div className="text-xs text-muted-foreground font-mono truncate">
-                <span className="font-semibold">{primaryParam[0]}:</span>{' '}
-                {typeof primaryParam[1] === 'string'
-                  ? primaryParam[1].length > 60
-                    ? primaryParam[1].slice(0, 60) + '...'
-                    : primaryParam[1]
-                  : JSON.stringify(primaryParam[1]).slice(0, 60)}
+            <div className="flex-1 min-w-0 pt-0.5">
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <span className="font-semibold text-sm">{config.label}</span>
+                <Badge variant="outline" className="text-xs font-mono h-5">
+                  {block.name}
+                </Badge>
+                <Badge variant="secondary" className="text-xs h-5">
+                  {config.category}
+                </Badge>
+              </div>
+              {description && (
+                <p className="text-xs text-foreground/80 mb-2 leading-relaxed">{description}</p>
+              )}
+              {!isOpen && primaryParam && (
+                <div className="text-xs text-muted-foreground font-mono truncate">
+                  <span className="font-semibold">{primaryParam[0]}:</span>{' '}
+                  {typeof primaryParam[1] === 'string'
+                    ? primaryParam[1].length > 60
+                      ? primaryParam[1].slice(0, 60) + '...'
+                      : primaryParam[1]
+                    : JSON.stringify(primaryParam[1]).slice(0, 60)}
               </div>
             )}
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex items-center gap-0.5 flex-shrink-0">
+            {/* Metadata icons - only show if provided */}
+            {timestamp && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="p-1.5 rounded hover:bg-muted/50 text-muted-foreground"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Clock className="h-3.5 w-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <span>{safeFormatDate(timestamp, 'MMM d, yyyy h:mm a')}</span>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {model && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="p-1.5 rounded hover:bg-muted/50 text-muted-foreground"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Cpu className="h-3.5 w-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <span>{model}</span>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {usage && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="p-1.5 rounded hover:bg-muted/50 text-muted-foreground"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Coins className="h-3.5 w-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <div className="text-xs space-y-0.5">
+                    <div>In: {formatNumber(usage.input_tokens)}</div>
+                    <div>Out: {formatNumber(usage.output_tokens)}</div>
+                    {usage.cache_read_input_tokens != null && usage.cache_read_input_tokens > 0 && (
+                      <div>Cached: {formatNumber(usage.cache_read_input_tokens)}</div>
+                    )}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            )}
             <Button
               variant="ghost"
               size="sm"
               className="h-7 px-2 opacity-60 hover:opacity-100"
-              onClick={handleCopy}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCopy();
+              }}
               title="Copy parameters"
             >
               {copied ? (
@@ -152,13 +193,10 @@ export function ToolUseBlock({ block }: ToolUseBlockProps) {
                 <Copy className="h-3.5 w-3.5" />
               )}
             </Button>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-              </Button>
-            </CollapsibleTrigger>
+            <ChevronDown className={`h-4 w-4 transition-transform text-muted-foreground ${isOpen ? 'rotate-180' : ''}`} />
           </div>
-        </div>
+        </button>
+      </CollapsibleTrigger>
 
         <CollapsibleContent>
           <div className="px-4 pb-3 pt-1">
