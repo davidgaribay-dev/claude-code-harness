@@ -1,6 +1,9 @@
 import type { Project, Conversation } from './types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8429';
+// Use relative URL by default - nginx proxies /api to the API container
+// This eliminates cross-origin issues in production
+// VITE_API_URL can override for development or external API access
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 async function handleResponse<T>(response: Response, errorMessage: string): Promise<T> {
   if (!response.ok) {

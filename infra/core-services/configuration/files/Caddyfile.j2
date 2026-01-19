@@ -37,6 +37,17 @@
 {% if rewind_enabled | default(true) %}
 # Rewind API - external HTTPS port {{ rewind_api_external_port }} proxies to internal port {{ rewind_api_port }}
 {{ core_services_ip }}:{{ rewind_api_external_port }} {
+    # Handle CORS preflight requests
+    @cors_preflight method OPTIONS
+    handle @cors_preflight {
+        header Access-Control-Allow-Origin "{header.Origin}"
+        header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        header Access-Control-Allow-Headers "Content-Type, Authorization"
+        header Access-Control-Allow-Credentials "true"
+        header Access-Control-Max-Age "86400"
+        respond "" 204
+    }
+
     reverse_proxy localhost:{{ rewind_api_port }}
 
     encode gzip zstd
@@ -49,9 +60,10 @@
     header {
         Strict-Transport-Security "max-age=31536000; includeSubDomains"
         X-Content-Type-Options "nosniff"
-        Access-Control-Allow-Origin "*"
-        Access-Control-Allow-Methods "GET, POST, OPTIONS"
+        Access-Control-Allow-Origin "{header.Origin}"
+        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
         Access-Control-Allow-Headers "Content-Type, Authorization"
+        Access-Control-Allow-Credentials "true"
     }
 
     tls internal

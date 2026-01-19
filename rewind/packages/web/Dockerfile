@@ -8,7 +8,8 @@ FROM base AS builder
 WORKDIR /app
 
 # Accept build arguments
-ARG VITE_API_URL=http://localhost:8429
+# Default to empty string - nginx proxies /api to the API container
+ARG VITE_API_URL=
 
 # Copy workspace files
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./

@@ -12,11 +12,6 @@ on:
     paths:
       - 'rewind/**'
   workflow_dispatch:
-    inputs:
-      api_url:
-        description: 'API URL for web build'
-        required: false
-        default: 'https://10.0.70.70:8443'
 
 env:
   REGISTRY: ghcr.io
@@ -109,7 +104,5 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            VITE_API_URL=${{ github.event.inputs.api_url || 'https://10.0.70.70:8443' }}
           cache-from: type=gha,scope=rewind-web
           cache-to: type=gha,scope=rewind-web,mode=max
