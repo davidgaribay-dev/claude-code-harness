@@ -120,7 +120,7 @@
         chdir: "{{ plane_docker_dir }}"
 
 
-# Play 3: Deploy Rewind with Docker Compose
+# Play 3: Deploy Rewind with Docker Compose (using pre-built GHCR images)
 - name: Deploy Rewind with Docker Compose
   hosts: all
   become: true
@@ -135,16 +135,6 @@
         group: "{{ core_services_user }}"
         mode: '0755'
 
-    - name: Copy Rewind source files
-      ansible.builtin.synchronize:
-        src: "{{ playbook_dir }}/../../../rewind/"
-        dest: "{{ rewind_docker_dir }}/"
-        rsync_opts:
-          - "--exclude=node_modules"
-          - "--exclude=.git"
-          - "--exclude=dist"
-      notify: Rebuild Rewind containers
-
     - name: Create Rewind .env file
       ansible.builtin.template:
         src: files/rewind.env.j2
@@ -154,16 +144,25 @@
         mode: '0600'
       notify: Restart Rewind containers
 
-    - name: Build Rewind Docker images
+    - name: Deploy Rewind Docker Compose file
+      ansible.builtin.template:
+        src: files/rewind-compose.yml.j2
+        dest: "{{ rewind_docker_dir }}/docker-compose.yml"
+        owner: "{{ core_services_user }}"
+        group: "{{ core_services_user }}"
+        mode: '0644'
+      notify: Restart Rewind containers
+
+    - name: Pull Rewind Docker images from GHCR
       ansible.builtin.command:
-        cmd: docker compose -f docker-compose.prod.yml build
+        cmd: docker compose pull
         chdir: "{{ rewind_docker_dir }}"
-      register: build_result
-      changed_when: "'Successfully built' in build_result.stdout or 'exporting' in build_result.stdout"
+      register: pull_result
+      changed_when: "'Pull complete' in pull_result.stdout or 'Downloaded' in pull_result.stdout"
 
     - name: Start Rewind containers
       ansible.builtin.command:
-        cmd: docker compose -f docker-compose.prod.yml up -d
+        cmd: docker compose up -d
         chdir: "{{ rewind_docker_dir }}"
       register: rewind_compose_result
       changed_when: "'Started' in rewind_compose_result.stderr or 'Created' in rewind_compose_result.stderr"
@@ -174,14 +173,9 @@
         verbosity: 1
 
   handlers:
-    - name: Rebuild Rewind containers
-      ansible.builtin.command:
-        cmd: docker compose -f docker-compose.prod.yml up -d --build --force-recreate
-        chdir: "{{ rewind_docker_dir }}"
-
     - name: Restart Rewind containers
       ansible.builtin.command:
-        cmd: docker compose -f docker-compose.prod.yml up -d --force-recreate
+        cmd: docker compose up -d --force-recreate
         chdir: "{{ rewind_docker_dir }}"
 
 

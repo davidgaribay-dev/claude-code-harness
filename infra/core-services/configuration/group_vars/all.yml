@@ -27,6 +27,9 @@ rewind_api_external_port: 8443
 rewind_web_external_port: 8444
 rewind_enabled: true
 rewind_docker_dir: "{{ core_services_user_home }}/rewind"
+# Container image settings (pulled from GitHub Container Registry)
+rewind_image_registry: "ghcr.io/davidgaribay-dev"
+rewind_image_tag: "latest"  # Use "latest", "main", "sha-abc1234", or "v1.2.3"
 
 # Neo4j connection (external VM)
 # neo4j_ip is passed from orchestrator via -e flag (from config.yaml)
