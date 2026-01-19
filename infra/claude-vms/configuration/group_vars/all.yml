@@ -37,6 +37,9 @@ git_user_name: "David Garibay"
 # export ANSIBLE_GH_TOKEN="ghp_xxxx" then pass with -e "gh_token=$ANSIBLE_GH_TOKEN"
 gh_token: ""
 
+# Claude Code credentials file (path to local .credentials.json)
+claude_credentials_file: "~/.claude/.credentials.json"
+
 # NVM version
 nvm_version: "v0.40.3"
 
